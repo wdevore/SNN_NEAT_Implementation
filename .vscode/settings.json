@@ -1,0 +1,8 @@
+{
+    "cmake.debugConfig": {
+        "cwd": "${workspaceFolder}/BaseImplementation",
+        "args": [
+            "assets/p2test.ne"
+        ]
+    }
+}
