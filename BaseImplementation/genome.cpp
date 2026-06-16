@@ -17,6 +17,7 @@
 #include <cmath>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include "genome.h"
 
@@ -26,17 +27,17 @@ namespace NEAT
 	Genome::Genome(int id, std::vector<Trait *> t, std::vector<NNode *> n, std::vector<Gene *> g)
 	{
 		genome_id = id;
-		traits = t;
-		nodes = n;
-		genes = g;
+		traits = std::move(t);
+		nodes = std::move(n);
+		genes = std::move(g);
 	}
 
 	Genome::Genome(int id, std::vector<Trait *> t, std::vector<NNode *> n, std::vector<Link *> links)
 	{
 		std::vector<Link *>::iterator curlink;
 		Gene *tempgene;
-		traits = t;
-		nodes = n;
+		traits = std::move(t);
+		nodes = std::move(n);
 
 		genome_id = id;
 
