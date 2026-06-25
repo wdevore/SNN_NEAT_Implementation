@@ -29,7 +29,7 @@ namespace IOControl
         key6.update();
     }
 
-    void KeyInput::process()
+    void KeyInput::process(Painter::Painter &painter)
     {
         if (keyW.isActive())
         {
@@ -79,6 +79,7 @@ namespace IOControl
 
         if (keyP.isTapped())
         {
+            painter.renderFPS = !painter.renderFPS;
         }
 
         if (key1.isTapped())

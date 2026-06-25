@@ -6,19 +6,7 @@
 #include "raylib.h"
 
 #include "KeyInput.h"
-
-void CustomDrawFPS(int posX, int posY)
-{
-  Color color = ORANGE; // Good FPS
-  int fps = GetFPS();
-
-  if ((fps < 30) && (fps >= 15))
-    color = YELLOW; // Warning FPS
-  else if (fps < 15)
-    color = RED; // Low FPS
-
-  DrawText(TextFormat("%2i FPS", fps), posX, posY, 20, color);
-}
+#include "Painter.h"
 
 int main(int argc, char *argv[])
 {
@@ -82,6 +70,8 @@ int main(int argc, char *argv[])
 
   SetTargetFPS(60);
 
+  Painter::Painter painter{};
+
   IOControl::KeyInput keyInput{};
 
   while (!WindowShouldClose())
@@ -90,17 +80,10 @@ int main(int argc, char *argv[])
     // --- Input Handling ---
     // ===============================================================
     keyInput.scan();
-    keyInput.process();
 
-    BeginDrawing();
+    keyInput.process(painter);
 
-    ClearBackground(RAYWHITE);
-
-    DrawText("Hello, World!", 190, 200, 20, LIGHTGRAY);
-
-    CustomDrawFPS(screenWidth - 80, screenHeight - 20);
-
-    EndDrawing();
+    painter.render(screenWidth, screenHeight);
   }
 
   std::ofstream saveFile(configPath);

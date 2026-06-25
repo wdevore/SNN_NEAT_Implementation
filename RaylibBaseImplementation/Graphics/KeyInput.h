@@ -1,6 +1,7 @@
 #pragma once
 
 #include "KeyControl.h"
+#include "Painter.h"
 
 namespace IOControl
 {
@@ -29,7 +30,7 @@ namespace IOControl
         ~KeyInput();
 
         void scan();
-        void process();
+        void process(Painter::Painter &painter);
     };
 
 } // namespace IOControl
