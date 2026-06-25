@@ -1,6 +1,6 @@
 {
     "cmake.debugConfig": {
-        "cwd": "${workspaceFolder}/BaseImplementation",
+        "cwd": "${workspaceFolder}/RaylibBaseImplementation",
         "args": [
             "assets/p2test.ne"
         ]

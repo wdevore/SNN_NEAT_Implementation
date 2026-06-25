@@ -8,6 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE)
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/RaylibBaseImplementation/CMakeLists.txt")
+    add_subdirectory(RaylibBaseImplementation) 
+endif()
+
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/BaseImplementation/CMakeLists.txt")
     add_subdirectory(BaseImplementation) 
 endif()
