@@ -8,6 +8,9 @@
 #include "KeyInput.h"
 #include "Painter.h"
 
+#include "Neat.h"
+#include "Simulation.h"
+
 int main(int argc, char *argv[])
 {
   int screenWidth = 800;
@@ -74,6 +77,13 @@ int main(int argc, char *argv[])
 
   IOControl::KeyInput keyInput{};
 
+  Neat::Neat neat{};
+  bool loaded = neat.loadNeatParams("assets/test.ne", true);
+
+  Neat::Simulation simulation{};
+
+  bool simulationProcess{false};
+
   while (!WindowShouldClose())
   {
     // ===============================================================
@@ -83,6 +93,26 @@ int main(int argc, char *argv[])
 
     keyInput.process(painter);
 
+    // ===============================================================
+    // --- Simulation ---
+    // ===============================================================
+    if (keyInput.keyR.isTapped())
+    {
+      simulationProcess = !simulationProcess;
+      if (simulationProcess)
+        std::cout << "Simulation enabled" << std::endl;
+      else
+        std::cout << "Simulation disabled" << std::endl;
+    }
+
+    if (simulationProcess)
+    {
+      simulation.process(neat);
+    }
+
+    // ===============================================================
+    // --- Draw ---
+    // ===============================================================
     painter.render(screenWidth, screenHeight);
   }
 

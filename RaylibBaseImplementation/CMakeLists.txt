@@ -28,13 +28,19 @@ if(NOT TARGET raylib)
 endif()
 
 add_subdirectory(Graphics)
+add_subdirectory(NEATCore)
+add_subdirectory(Simulation)
 
 target_include_directories(RayLibBaseImplementation
     PRIVATE includes
     PRIVATE Graphics
+    PRIVATE NEATCore
+    PRIVATE Simulation
 )
 
 target_link_libraries(RayLibBaseImplementation
   PUBLIC GraphicsLib
+  PUBLIC NEATCoreLib
+  PUBLIC SimulationLib
   PUBLIC raylib
 )
