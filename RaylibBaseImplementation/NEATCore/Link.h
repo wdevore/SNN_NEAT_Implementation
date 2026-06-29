@@ -34,7 +34,17 @@ namespace Neat
         Link(const Neat &neat,
              double w, std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
              bool recur);
+        Link(const Neat &neat,
+             std::shared_ptr<Trait> lt,
+             double w, std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
+             bool recur);
+        Link(double w);
+        Link(const Link &link);
+        Link(const Link *link);
+
         ~Link();
+
+        void derive_trait(Trait *curtrait);
     };
 
 } // namespace Neat

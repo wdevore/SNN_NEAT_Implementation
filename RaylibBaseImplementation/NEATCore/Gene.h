@@ -25,7 +25,25 @@ namespace Neat
         Gene(const Neat &neat,
              double w, std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
              bool recur, double innov, double mnum);
+
+        // Construct a gene with a trait
+        Gene(const Neat &neat,
+             std::shared_ptr<Trait> tp, double w,
+             std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
+             bool recur, double innov, double mnum);
+
+        // Construct a gene off of another gene as a duplicate
+        Gene(const Neat &neat,
+             const Gene &g,
+             std::shared_ptr<Trait> tp,
+             std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode);
+
+        // Copy Constructor
+        Gene(const Gene &gene);
+
         ~Gene();
+
+        void toFile(std::ofstream &outFile);
     };
 
 } // namespace Neat

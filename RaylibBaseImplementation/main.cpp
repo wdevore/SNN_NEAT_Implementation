@@ -73,48 +73,73 @@ int main(int argc, char *argv[])
 
   SetTargetFPS(60);
 
-  Painter::Painter painter{};
-
-  IOControl::KeyInput keyInput{};
-
-  Neat::Neat neat{};
-  bool loaded = neat.loadNeatParams("assets/test.ne", true);
-
-  Neat::Simulation simulation{};
-
-  bool simulationProcess{false};
-
-  while (!WindowShouldClose())
+  try
   {
-    // ===============================================================
-    // --- Input Handling ---
-    // ===============================================================
-    keyInput.scan();
 
-    keyInput.process(painter);
+    Painter::Painter painter{};
 
-    // ===============================================================
-    // --- Simulation ---
-    // ===============================================================
-    if (keyInput.keyR.isTapped())
+    IOControl::KeyInput keyInput{};
+
+    Neat::Neat neat{};
+    bool loaded = neat.loadNeatParams("assets/test.ne", true);
+
+    Neat::Simulation simulation{};
+
+    bool simulationRun{false};
+
+    while (!WindowShouldClose())
     {
-      simulationProcess = !simulationProcess;
-      if (simulationProcess)
-        std::cout << "Simulation enabled" << std::endl;
-      else
-        std::cout << "Simulation disabled" << std::endl;
-    }
+      // ===============================================================
+      // --- Input Handling ---
+      // ===============================================================
+      keyInput.scan();
 
-    if (simulationProcess)
-    {
-      simulation.process(neat);
-    }
+      keyInput.process(painter);
 
-    // ===============================================================
-    // --- Draw ---
-    // ===============================================================
-    painter.render(screenWidth, screenHeight);
+      if (keyInput.keyE.isTapped())
+      {
+        simulation.reset();
+      }
+
+      // ===============================================================
+      // --- Simulation ---
+      // ===============================================================
+      if (keyInput.keyR.isTapped())
+      {
+        simulationRun = !simulationRun;
+        if (simulationRun)
+          std::cout << "Simulation enabled" << std::endl;
+        else
+          std::cout << "Simulation disabled" << std::endl;
+      }
+
+      if (keyInput.keyS.isTapped() && !simulationRun)
+      {
+        std::cout << "A single step" << std::endl;
+        simulation.step(neat);
+      }
+      else if (simulationRun)
+      {
+        // Continuously step
+        simulation.step(neat);
+      }
+
+      // ===============================================================
+      // --- Draw ---
+      // ===============================================================
+      painter.render(screenWidth, screenHeight);
+    }
   }
+  catch (const std::exception &e)
+  {
+    std::cerr << "Exception: " << e.what() << std::endl;
+  }
+  catch (...)
+  {
+    std::cerr << "Unknown exception occurred" << std::endl;
+  }
+
+  std::cout << "========== Exiting Simulation ==========" << std::endl;
 
   std::ofstream saveFile(configPath);
   if (saveFile.is_open())

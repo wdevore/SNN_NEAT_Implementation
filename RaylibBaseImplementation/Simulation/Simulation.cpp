@@ -13,9 +13,16 @@ namespace Neat
     {
     }
 
-    void Simulation::process(const Neat &neat)
+    void Simulation::reset()
     {
-        std::cout << "Processing..." << std::endl;
-        }
+        std::cout << "Resetting simulation..." << std::endl;
+        stepCount = 0;
+    }
+
+    void Simulation::step(const Neat &neat)
+    {
+        std::cout << "Processing... " << stepCount << std::endl;
+        stepCount++;
+    }
 
 } // namespace Neat

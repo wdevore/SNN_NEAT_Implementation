@@ -9,10 +9,13 @@ namespace Neat
     private:
         /* data */
     public:
+        int stepCount{0};
+
         Simulation(/* args */);
         ~Simulation();
 
-        void process(const Neat &neat);
+        void reset();
+        void step(const Neat &neat);
     };
 
 } // namespace Neat

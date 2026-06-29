@@ -1,14 +1,46 @@
 #pragma once
 
+#include <vector>
+#include "Neat.h"
+
 namespace Neat
 {
+    /// @brief
+    /// TRAIT: A Trait is a group of parameters that can be expressed
+    ///        as a group more than one time. Traits save a genetic
+    ///        algorithm from having to search vast parameter landscapes
+    ///        on every node. Instead, each node can simply point to a trait
+    ///        and those traits can evolve on their own.
     class Trait
     {
     private:
         /* data */
+
+        // ************ LEARNING PARAMETERS ***********
+        // The following parameters are for use in
+        //   neurons that learn through habituation,
+        //   sensitization, or Hebbian-type processes
+
     public:
-        Trait(/* args */);
+        int trait_id;                 // Used in file saving and loading
+        std::vector<double> params{}; // Keep traits in an array
+
+        Trait(const Neat &neat);
+        Trait(const Neat &neat,
+              int id,
+              double p1, double p2, double p3, double p4,
+              double p5, double p6, double p7, double p8, double p9);
+        // Copy Constructor
+        Trait(const Trait &t);
+        // Special Constructor creates a new Trait which is the average of 2 existing traits passed in
+        Trait(const Trait &t1, const Trait &t2);
+
         ~Trait();
+
+        void toFile(std::ofstream &outFile);
+
+        // Perturb the trait parameters slightly
+        void mutate(const Neat &neat);
     };
 
 } // namespace Neat

@@ -17,6 +17,8 @@ namespace IOControl
         IOControl::KeyControl keyL{KEY_L};
         IOControl::KeyControl keyP{KEY_P};
         IOControl::KeyControl keyR{KEY_R};
+        IOControl::KeyControl keyE{KEY_E};
+        IOControl::KeyControl keyH{KEY_H};
 
         IOControl::KeyControl key1{KEY_ONE};
         IOControl::KeyControl key2{KEY_TWO};

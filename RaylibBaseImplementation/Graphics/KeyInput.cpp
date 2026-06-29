@@ -21,6 +21,8 @@ namespace IOControl
         keyL.update();
         keyP.update();
         keyR.update();
+        keyE.update();
+        keyH.update();
 
         key1.update();
         key2.update();
@@ -35,12 +37,6 @@ namespace IOControl
         if (keyW.isActive())
         {
             std::cout << "W pressed" << std::endl;
-        }
-        // We only want to detect the first event and reset on keyup.
-        if (keyS.isTapped())
-        {
-            // pipeline.toggleSmoothControl();
-            // std::cout << "Smooth control Enabled: " << (pipeline.smoothControlEnabled() ? "Yes" : "No") << std::endl;
         }
         if (IsKeyDown(KEY_A))
         {
@@ -105,6 +101,17 @@ namespace IOControl
 
         if (key6.isTapped())
         {
+        }
+
+        if (keyH.isTapped())
+        {
+            std::cout << "======================================" << std::endl;
+            std::cout << "R = Reset" << std::endl;
+            std::cout << "S = Step" << std::endl;
+            std::cout << "P = Toggle FPS" << std::endl;
+            std::cout << "H = Help" << std::endl;
+            std::cout << "` = Quit" << std::endl;
+            std::cout << "======================================" << std::endl;
         }
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))

@@ -13,6 +13,7 @@ namespace Neat
         const int num_trait_params = 8;
 
         int experiment{0};
+
         double trait_param_mut_prob{0};
         double trait_mutation_power{0}; // Power of mutation on a signle trait param
         double linktrait_mut_sig{0};    // Amount that mutation_num changes for a trait change inside a link
@@ -40,11 +41,12 @@ namespace Neat
         double mate_singlepoint_prob{0};
         double mate_only_prob{0};  // Prob. of mating without mutation
         double recur_only_prob{0}; // Probability of forcing selection of ONLY links that are naturally recurrent
-        int pop_size{0};           // Size of population
-        int dropoff_age{0};        // Age where Species starts to be penalized
-        int newlink_tries{0};      // Number of tries mutate_add_link will attempt to find an open link
-        int print_every{0};        // Tells to print population to file every n generations
-        int babies_stolen{0};      // The number of babies to siphen off to the champions
+
+        int pop_size{0};      // Size of population
+        int dropoff_age{0};   // Age where Species starts to be penalized
+        int newlink_tries{0}; // Number of tries mutate_add_link will attempt to find an open link
+        int print_every{0};   // Tells to print population to file every n generations
+        int babies_stolen{0}; // The number of babies to siphen off to the champions
         int num_runs{0};
 
         Neat(/* args */);
@@ -54,7 +56,7 @@ namespace Neat
         bool loadNeatParams(const std::string &file, bool output);
         double gaussrand();
 
-        inline int randposneg()
+        inline int randposneg() const
         {
             if (rand() % 2)
                 return 1;
@@ -62,12 +64,12 @@ namespace Neat
                 return -1;
         }
 
-        inline int randint(int x, int y)
+        inline int randint(int x, int y) const
         {
             return rand() % (y - x + 1) + x;
         }
 
-        inline double randfloat()
+        inline double randfloat() const
         {
             return rand() / (double)RAND_MAX;
         }
