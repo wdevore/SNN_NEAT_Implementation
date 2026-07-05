@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include "Network.h"
 #include "NNode.h"
 #include "Link.h"
 
@@ -11,101 +12,110 @@ namespace Neat
     {
     }
 
-    NNode::NNode(const Neat &neat)
-    {
-        params.resize(neat.num_trait_params);
-    }
-
-    NNode::NNode(Nodetype ntype, int nodeid)
-    {
-        active_flag = false;
-        activesum = 0;
-        activation = 0;
-        output = 0;
-        last_activation = 0;
-        last_activation2 = 0;
-        type = ntype;         // NEURON or SENSOR type
-        activation_count = 0; // Inactive upon creation
-        node_id = nodeid;
-        ftype = SIGMOID;
-        nodetrait = 0;
-        gen_node_label = HIDDEN;
-        dup = 0;
-        analogue = 0;
-        frozen = false;
-        trait_id = 1;
-        override = false;
-    }
-
-    NNode::NNode(Nodetype ntype, int nodeid, Nodeplace placement)
-    {
-        active_flag = false;
-        activesum = 0;
-        activation = 0;
-        output = 0;
-        last_activation = 0;
-        last_activation2 = 0;
-        type = ntype;         // NEURON or SENSOR type
-        activation_count = 0; // Inactive upon creation
-        node_id = nodeid;
-        ftype = SIGMOID;
-        nodetrait = 0;
-        gen_node_label = placement;
-        dup = 0;
-        analogue = 0;
-        frozen = false;
-        trait_id = 1;
-        override = false;
-    }
-
-    NNode::NNode(const NNode &n, std::shared_ptr<Trait> t)
-    {
-        active_flag = false;
-        activation = 0;
-        output = 0;
-        last_activation = 0;
-        last_activation2 = 0;
-        type = n.type;        // NEURON or SENSOR type
-        activation_count = 0; // Inactive upon creation
-        node_id = n.node_id;
-        ftype = SIGMOID;
-        gen_node_label = n.gen_node_label;
-        dup = 0;
-        analogue = 0;
-        nodetrait = t;
-        frozen = false;
-        if (t != 0)
-            trait_id = t->trait_id;
-        else
-            trait_id = 1;
-        override = false;
-    }
-
-    NNode::NNode(const NNode &nnode) : activation_count(nnode.activation_count),
-                                       last_activation(nnode.last_activation),
-                                       last_activation2(nnode.last_activation2),
-                                       nodetrait(nnode.nodetrait),
-                                       trait_id(nnode.trait_id),
-                                       dup(nnode.dup),
-                                       analogue(nnode.analogue), // Fixed: was nnode.dup
-                                       override(nnode.override),
-                                       override_value(nnode.override_value),
-                                       frozen(nnode.frozen),
-                                       ftype(nnode.ftype),
-                                       type(nnode.type),
-                                       activesum(nnode.activesum),
-                                       activation(nnode.activation),
-                                       active_flag(nnode.active_flag),
-                                       output(nnode.output),
-                                       params(nnode.params),
-                                       node_id(nnode.node_id),
-                                       gen_node_label(nnode.gen_node_label)
-    {
-        // incoming and outgoing are not copied as they represent the phenotype network structure
-    }
-
     NNode::~NNode()
     {
+    }
+
+    std::shared_ptr<NNode> makeFromPlacment(Nodetype ntype, int nodeid, Nodeplace placement);
+
+    std::shared_ptr<NNode> makeFromNeat(const Neat &neat)
+    {
+        auto newNode = std::make_shared<NNode>();
+        newNode->params.resize(neat.num_trait_params);
+
+        return newNode;
+    }
+
+    std::shared_ptr<NNode> makeFromType(Nodetype ntype, int nodeid)
+    {
+        auto newNode = makeFromPlacment(ntype, nodeid, HIDDEN);
+
+        return newNode;
+    }
+
+    std::shared_ptr<NNode> makeFromPlacment(Nodetype ntype, int nodeid, Nodeplace placement)
+    {
+        auto newNode = makeFromType(ntype, nodeid);
+
+        newNode->active_flag = false;
+        newNode->activesum = 0;
+        newNode->activation = 0;
+        newNode->output = 0;
+        newNode->last_activation = 0;
+        newNode->last_activation2 = 0;
+        newNode->type = ntype;         // NEURON or SENSOR type
+        newNode->activation_count = 0; // Inactive upon creation
+        newNode->node_id = nodeid;
+        newNode->ftype = SIGMOID;
+        newNode->nodetrait = 0;
+        newNode->gen_node_label = placement;
+        newNode->dup = 0;
+        newNode->analogue = 0;
+        newNode->frozen = false;
+        newNode->trait_id = 1;
+        newNode->override = false;
+
+        return newNode;
+    }
+
+    // incoming and outgoing are not copied as they represent the phenotype network structure
+    std::shared_ptr<NNode> NNode::makeFromTrait(const NNode &nnode, std::shared_ptr<Trait> t)
+    {
+        auto newNode = makeFromPlacment(nnode.type, nnode.node_id, nnode.gen_node_label);
+
+        newNode->active_flag = nnode.active_flag;
+        newNode->activesum = nnode.activesum;
+        newNode->activation = nnode.activation;
+        newNode->output = nnode.output;
+        newNode->last_activation = nnode.last_activation;
+        newNode->last_activation2 = nnode.last_activation2;
+
+        newNode->activation_count = nnode.activation_count;
+
+        newNode->ftype = nnode.ftype;
+        newNode->nodetrait = t;
+        if (t)
+        {
+            newNode->trait_id = t->trait_id;
+        }
+        else
+            newNode->trait_id = 1;
+
+        newNode->dup = nnode.dup;
+        newNode->analogue = nnode.analogue;
+        newNode->frozen = nnode.frozen;
+        newNode->trait_id = nnode.trait_id;
+        newNode->override = nnode.override;
+        newNode->override_value = nnode.override_value;
+
+        newNode->params = nnode.params;
+
+        return newNode;
+    }
+
+    std::shared_ptr<NNode> NNode::makeCopy(const NNode &nnode)
+    {
+        auto newNode = std::make_shared<NNode>();
+
+        newNode->active_flag = nnode.active_flag;
+        newNode->activesum = nnode.activesum;
+        newNode->activation = nnode.activation;
+        newNode->output = nnode.output;
+        newNode->last_activation = nnode.last_activation;
+        newNode->last_activation2 = nnode.last_activation2;
+        newNode->type = nnode.type;                         // NEURON or SENSOR type
+        newNode->activation_count = nnode.activation_count; // Inactive upon creation
+        newNode->node_id = nnode.node_id;
+        newNode->ftype = nnode.ftype;
+        newNode->nodetrait = nnode.nodetrait;
+        newNode->gen_node_label = nnode.gen_node_label;
+        newNode->dup = nnode.dup;
+        newNode->analogue = nnode.dup;
+        newNode->frozen = nnode.frozen;
+        newNode->trait_id = nnode.trait_id;
+        newNode->override = nnode.override;
+
+        return newNode;
     }
 
     bool NNode::sensor_load(double value)
@@ -135,7 +145,7 @@ namespace Neat
     // Add an incoming connection a node
     void NNode::add_incoming(const Neat &neat, std::shared_ptr<NNode> feednode, double weight, bool recur)
     {
-        auto newlink = std::make_shared<Link>(neat, weight, feednode, shared_from_this(), recur);
+        auto newlink = Link::makeFromNodes(neat, weight, feednode, shared_from_this(), recur);
         incoming.push_back(newlink);
         (feednode->outgoing).push_back(newlink);
     }
@@ -143,7 +153,7 @@ namespace Neat
     // Nonrecurrent version
     void NNode::add_incoming(const Neat &neat, std::shared_ptr<NNode> feednode, double weight)
     {
-        auto newlink = std::make_shared<Link>(neat, weight, feednode, shared_from_this(), false);
+        auto newlink = Link::makeFromNodes(neat, weight, feednode, shared_from_this(), false);
         incoming.push_back(newlink);
         (feednode->outgoing).push_back(newlink);
     }

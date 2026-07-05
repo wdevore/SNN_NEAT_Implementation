@@ -8,56 +8,92 @@ namespace Neat
     {
     }
 
-    Gene::Gene(const Neat &neat,
-               double w,
-               std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
-               bool recur, double innov, double mnum)
+    std::shared_ptr<Gene> makeFromNodes(const Neat &neat,
+                                        double w,
+                                        std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
+                                        bool recur, double innov, double mnum)
     {
-        link = std::make_shared<Link>(neat, w, inode, onode, recur);
-        innovation_num = innov;
-        mutation_num = mnum;
+        auto newGene = std::make_shared<Gene>();
 
-        enable = true;
+        newGene->link = Link::makeFromNodes(neat, w, inode, onode, recur);
+        newGene->innovation_num = innov;
+        newGene->mutation_num = mnum;
 
-        frozen = false;
+        newGene->enable = true;
+
+        newGene->frozen = false;
+
+        return newGene;
     }
 
-    Gene::Gene(const Neat &neat,
-               std::shared_ptr<Trait> tp, double w,
-               std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
-               bool recur, double innov, double mnum)
+    std::shared_ptr<Gene> Gene::makeFromTrait(const Neat &neat,
+                                              std::shared_ptr<Trait> tp, double w,
+                                              std::shared_ptr<NNode> inode,
+                                              std::shared_ptr<NNode> onode,
+                                              bool recurrent, double innov, double mnum)
     {
-        link = std::make_shared<Link>(neat, tp, w, inode, onode, recur);
-        innovation_num = innov;
-        mutation_num = mnum;
+        auto newGene = std::make_shared<Gene>();
 
-        enable = true;
+        newGene->link = Link::makeFromTrait(neat, tp, w, inode, onode, recurrent);
+        newGene->innovation_num = innov;
+        newGene->mutation_num = mnum;
 
-        frozen = false;
+        newGene->enable = true;
+
+        newGene->frozen = false;
+
+        return newGene;
     }
 
-    Gene::Gene(const Neat &neat,
-               const Gene &g,
-               std::shared_ptr<Trait> tp,
-               std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode)
+    std::shared_ptr<Gene> Gene::makeFromTraitNonRecurrent(const Neat &neat,
+                                                          std::shared_ptr<Trait> tp, double w,
+                                                          std::shared_ptr<NNode> inode,
+                                                          std::shared_ptr<NNode> onode,
+                                                          double innov, double mnum)
     {
+        return makeFromTrait(neat, tp, w, inode, onode, false, innov, mnum);
+    }
+
+    std::shared_ptr<Gene> Gene::makeFromTraitRecurrent(const Neat &neat,
+                                                       std::shared_ptr<Trait> tp, double w,
+                                                       std::shared_ptr<NNode> inode,
+                                                       std::shared_ptr<NNode> onode,
+                                                       double innov, double mnum)
+    {
+        return makeFromTrait(neat, tp, w, inode, onode, true, innov, mnum);
+    }
+
+    std::shared_ptr<Gene> Gene::makeFromGene(const Neat &neat,
+                                             const Gene &g,
+                                             std::shared_ptr<Trait> tp,
+                                             std::shared_ptr<NNode> inode,
+                                             std::shared_ptr<NNode> onode)
+    {
+        auto newGene = std::make_shared<Gene>();
+
         // cout<<"Trying to attach nodes: "<<inode<<" "<<onode<<endl;
-        link = std::make_shared<Link>(neat, tp, g.link->weight, inode, onode, g.link->is_recurrent);
-        innovation_num = g.innovation_num;
-        mutation_num = g.mutation_num;
-        enable = g.enable;
+        newGene->link = Link::makeFromTrait(neat, tp, g.link->weight, inode, onode, g.link->is_recurrent);
+        newGene->innovation_num = g.innovation_num;
+        newGene->mutation_num = g.mutation_num;
+        newGene->enable = g.enable;
 
-        frozen = g.frozen;
+        newGene->frozen = g.frozen;
+
+        return newGene;
     }
 
-    Gene::Gene(const Gene &gene)
+    std::shared_ptr<Gene> Gene::makeCopy(const Neat &neat, const Gene &gene)
     {
-        innovation_num = gene.innovation_num;
-        mutation_num = gene.mutation_num;
-        enable = gene.enable;
-        frozen = gene.frozen;
+        auto newGene = std::make_shared<Gene>();
 
-        link = std::make_shared<Link>(gene.link.get());
+        newGene->innovation_num = gene.innovation_num;
+        newGene->mutation_num = gene.mutation_num;
+        newGene->enable = gene.enable;
+        newGene->frozen = gene.frozen;
+
+        newGene->link = Link::makeCopy(neat, gene.link);
+
+        return newGene;
     }
 
     void Gene::toFile(std::ofstream &outFile)

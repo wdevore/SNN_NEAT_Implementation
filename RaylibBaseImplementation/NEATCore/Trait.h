@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 #include <vector>
 #include "Neat.h"
@@ -25,17 +26,25 @@ namespace Neat
         int trait_id;                 // Used in file saving and loading
         std::vector<double> params{}; // Keep traits in an array
 
-        Trait(const Neat &neat);
-        Trait(const Neat &neat,
-              int id,
-              double p1, double p2, double p3, double p4,
-              double p5, double p6, double p7, double p8, double p9);
+        Trait();
+        ~Trait();
+
         // Copy Constructor
         Trait(const Trait &t);
-        // Special Constructor creates a new Trait which is the average of 2 existing traits passed in
-        Trait(const Trait &t1, const Trait &t2);
 
-        ~Trait();
+        // ================================================
+        // Factories
+        // ================================================
+        static std::shared_ptr<Trait> makeFromParams(const Neat &neat,
+                                                     int id,
+                                                     double p1, double p2, double p3, double p4,
+                                                     double p5, double p6, double p7, double p8, double p9);
+        // Copy Constructor
+        static std::shared_ptr<Trait> makeCopy(const Trait &trait);
+
+        // Special Constructor creates a new Trait which is the average of 2 existing traits passed in
+        static std::shared_ptr<Trait> makeByAverage(const Neat &neat,
+                                                    const Trait &t1, const Trait &t2);
 
         void toFile(std::ofstream &outFile);
 

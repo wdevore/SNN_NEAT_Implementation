@@ -217,7 +217,7 @@ namespace Neat
         return true;
     }
 
-    double Neat::gaussrand()
+    double Neat::gaussrand() const
     {
         static int iset = 0;
         static double gset;
@@ -243,7 +243,7 @@ namespace Neat
         }
     }
 
-    double Neat::fsigmoid(double activesum, double slope, double constant)
+    double Neat::fsigmoid(double activesum, double slope, double constant) const
     {
         // RIGHT SHIFTED ---------------------------------------------------------
         // return (1/(1+(exp(-(slope*activesum-constant))))); //ave 3213 clean on 40 runs of p2m and 3468 on another 40
@@ -262,7 +262,7 @@ namespace Neat
         return (1 / (1 + (exp(-(slope * activesum))))); // Compressed
     }
 
-    double Neat::oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate)
+    double Neat::oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) const
     {
         bool neg = false;
         double delta;
@@ -337,7 +337,7 @@ namespace Neat
         return 0.0;
     }
 
-    double Neat::hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate)
+    double Neat::hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) const
     {
         bool neg = false;
         double delta;

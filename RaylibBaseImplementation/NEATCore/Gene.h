@@ -21,27 +21,42 @@ namespace Neat
         bool frozen;         // When frozen, the linkweight cannot be mutated
 
         Gene(/* args */);
+        ~Gene();
+
+        // ================================================
+        // Factories
+        // ================================================
         // Construct a gene with no trait
-        Gene(const Neat &neat,
-             double w, std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
-             bool recur, double innov, double mnum);
+        static std::shared_ptr<Gene> makeFromNodes(const Neat &neat,
+                                                   double w,
+                                                   std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
+                                                   bool recur, double innov, double mnum);
 
         // Construct a gene with a trait
-        Gene(const Neat &neat,
-             std::shared_ptr<Trait> tp, double w,
-             std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
-             bool recur, double innov, double mnum);
+        static std::shared_ptr<Gene> makeFromTrait(const Neat &neat,
+                                                   std::shared_ptr<Trait> tp, double w,
+                                                   std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
+                                                   bool recurrent, double innov, double mnum);
+
+        static std::shared_ptr<Gene> makeFromTraitNonRecurrent(const Neat &neat,
+                                                               std::shared_ptr<Trait> tp, double w,
+                                                               std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
+                                                               double innov, double mnum);
+
+        static std::shared_ptr<Gene> makeFromTraitRecurrent(const Neat &neat,
+                                                            std::shared_ptr<Trait> tp, double w,
+                                                            std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
+                                                            double innov, double mnum);
 
         // Construct a gene off of another gene as a duplicate
-        Gene(const Neat &neat,
-             const Gene &g,
-             std::shared_ptr<Trait> tp,
-             std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode);
+        static std::shared_ptr<Gene> makeFromGene(const Neat &neat,
+                                                  const Gene &g,
+                                                  std::shared_ptr<Trait> tp,
+                                                  std::shared_ptr<NNode> inode,
+                                                  std::shared_ptr<NNode> onode);
 
         // Copy Constructor
-        Gene(const Gene &gene);
-
-        ~Gene();
+        static std::shared_ptr<Gene> makeCopy(const Neat &neat, const Gene &gene);
 
         void toFile(std::ofstream &outFile);
     };

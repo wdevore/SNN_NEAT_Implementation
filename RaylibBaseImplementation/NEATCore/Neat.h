@@ -54,7 +54,7 @@ namespace Neat
 
         int getUnitCount(const std::string &string, const std::string &set);
         bool loadNeatParams(const std::string &file, bool output);
-        double gaussrand();
+        double gaussrand() const;
 
         inline int randposneg() const
         {
@@ -89,9 +89,9 @@ namespace Neat
         // the old output and some other node.
         // When not right-shifted, the steepened slope is closest to a linear
         // ascent as possible between -0.5 and 0.5
-        double fsigmoid(double activesum, double slope, double constant);
-        double oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate);
-        double hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate);
+        double fsigmoid(double activesum, double slope, double constant) const;
+        double oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) const;
+        double hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) const;
     };
 
 } // namespace Neat

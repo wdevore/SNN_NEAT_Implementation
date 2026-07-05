@@ -6,73 +6,66 @@ namespace Neat
     {
     }
 
-    Link::Link(const Neat &neat,
-               double w,
-               std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
-               bool recur)
-    {
-        weight = w;
-        in_node = inode;
-        out_node = onode;
-        is_recurrent = recur;
-        added_weight = 0;
-        linktrait = 0;
-        time_delay = false;
-        trait_id = 1;
-        params.resize(neat.num_trait_params);
-    }
-
-    Link::Link(const Neat &neat, std::shared_ptr<Trait> lt, double w, std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode, bool recur)
-    {
-        weight = w;
-        in_node = inode;
-        out_node = onode;
-        is_recurrent = recur;
-        added_weight = 0;
-        linktrait = lt;
-        time_delay = false;
-        if (lt != 0)
-            trait_id = lt->trait_id;
-        else
-            trait_id = 1;
-    }
-
-    Link::Link(double w)
-    {
-        weight = w;
-        in_node = out_node = 0;
-        is_recurrent = false;
-        linktrait = 0;
-        time_delay = false;
-        trait_id = 1;
-    }
-
-    Link::Link(const Link &link)
-    {
-        weight = link.weight;
-        in_node = link.in_node;
-        out_node = link.out_node;
-        is_recurrent = link.is_recurrent;
-        added_weight = link.added_weight;
-        linktrait = link.linktrait;
-        time_delay = link.time_delay;
-        trait_id = link.trait_id;
-    }
-
-    Link::Link(const Link *link)
-    {
-        weight = link->weight;
-        in_node = link->in_node;
-        out_node = link->out_node;
-        is_recurrent = link->is_recurrent;
-        added_weight = link->added_weight;
-        linktrait = link->linktrait;
-        time_delay = link->time_delay;
-        trait_id = link->trait_id;
-    }
-
     Link::~Link()
     {
+    }
+
+    std::shared_ptr<Link> Link::makeFromNodes(const Neat &neat,
+                                              double w,
+                                              std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
+                                              bool recur)
+    {
+        auto newLink = std::make_shared<Link>();
+
+        newLink->weight = w;
+        newLink->in_node = inode;
+        newLink->out_node = onode;
+        newLink->is_recurrent = recur;
+        newLink->added_weight = 0;
+        newLink->linktrait = 0;
+        newLink->time_delay = false;
+        newLink->trait_id = 1;
+
+        newLink->params.resize(neat.num_trait_params);
+
+        return newLink;
+    }
+
+    std::shared_ptr<Link> Link::makeFromTrait(const Neat &neat,
+                                              std::shared_ptr<Trait> lt,
+                                              double w,
+                                              std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
+                                              bool recur)
+    {
+        auto newLink = makeFromNodes(neat, w, inode, onode, recur);
+
+        newLink->linktrait = lt;
+
+        if (lt != 0)
+            newLink->trait_id = lt->trait_id;
+        else
+            newLink->trait_id = 1;
+
+        return newLink;
+    }
+
+    std::shared_ptr<Link> Link::makeFromWeight(const Neat &neat, double w)
+    {
+        auto newLink = makeFromNodes(neat, w, nullptr, nullptr, false);
+
+        return newLink;
+    }
+
+    std::shared_ptr<Link> Link::makeCopy(const Neat &neat, const std::shared_ptr<Link> &link)
+    {
+        auto newLink = makeFromNodes(neat, link->weight, link->in_node, link->out_node, link->is_recurrent);
+
+        newLink->added_weight = link->added_weight;
+        newLink->linktrait = link->linktrait;
+        newLink->time_delay = link->time_delay;
+        newLink->trait_id = link->trait_id;
+
+        return newLink;
     }
 
     void Link::derive_trait(Trait *curtrait)

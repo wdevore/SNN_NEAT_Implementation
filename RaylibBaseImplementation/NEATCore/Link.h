@@ -31,18 +31,25 @@ namespace Neat
         std::vector<double> params{};
 
         Link(/* args */);
-        Link(const Neat &neat,
-             double w, std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
-             bool recur);
-        Link(const Neat &neat,
-             std::shared_ptr<Trait> lt,
-             double w, std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
-             bool recur);
-        Link(double w);
-        Link(const Link &link);
-        Link(const Link *link);
-
         ~Link();
+
+        // ================================================
+        // Factories
+        // ================================================
+        static std::shared_ptr<Link> makeFromNodes(const Neat &neat,
+                                                   double w,
+                                                   std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
+                                                   bool recur);
+
+        static std::shared_ptr<Link> makeFromTrait(const Neat &neat,
+                                                   std::shared_ptr<Trait> lt,
+                                                   double w,
+                                                   std::shared_ptr<NNode> inode, std::shared_ptr<NNode> onode,
+                                                   bool recur);
+
+        static std::shared_ptr<Link> makeFromWeight(const Neat &neat,
+                                                    double w);
+        static std::shared_ptr<Link> makeCopy(const Neat &neat, const std::shared_ptr<Link> &link);
 
         void derive_trait(Trait *curtrait);
     };

@@ -4,7 +4,6 @@
 #include <fstream>
 
 #include "Trait.h"
-#include "Network.h"
 
 namespace Neat
 {
@@ -29,6 +28,7 @@ namespace Neat
 
     // Forward declarations because Link and NNode are circular dependent on each other
     class Link;
+    class Network;
 
     /// @brief
     /// A NODE is either a NEURON or a SENSOR.
@@ -43,7 +43,7 @@ namespace Neat
     private:
         /* data */
 
-    protected:
+    public:
         int activation_count;    // keeps track of which activation the node is currently in
         double last_activation;  // Holds the previous step's activation for recurrency
         double last_activation2; // Holds the activation BEFORE the prevous step's
@@ -64,7 +64,6 @@ namespace Neat
 
         double override_value; // Contains the activation value that will override this node's activation
 
-    public:
         bool frozen; // When frozen, cannot be mutated (meaning its trait pointer is fixed)
 
         Functype ftype; // type is either SIGMOID ..or others that can be added
@@ -99,15 +98,17 @@ namespace Neat
         Nodeplace gen_node_label; // Used for genetic marking of nodes
 
         NNode();
-        NNode(const Neat &neat);
-        NNode(Nodetype ntype, int nodeid);
-        NNode(Nodetype ntype, int nodeid, Nodeplace placement);
-        // Construct a NNode off another NNode for genome purposes
-        NNode(const NNode &n, std::shared_ptr<Trait> t);
-        // Copy Constructor
-        NNode(const NNode &nnode);
-
         ~NNode();
+
+        // ================================================
+        // Factories
+        // ================================================
+        static std::shared_ptr<NNode> makeFromNeat(const Neat &neat);
+        static std::shared_ptr<NNode> makeFromType(Nodetype ntype, int nodeid);
+        static std::shared_ptr<NNode> makeFromPlacment(Nodetype ntype, int nodeid, Nodeplace placement);
+        // Copy based on Trait
+        static std::shared_ptr<NNode> makeFromTrait(const NNode &nnode, std::shared_ptr<Trait> t);
+        static std::shared_ptr<NNode> makeCopy(const NNode &nnode);
 
         void setTrait(const std::shared_ptr<Trait> &t) { nodetrait = t; }
 
