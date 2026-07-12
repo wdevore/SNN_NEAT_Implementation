@@ -1,7 +1,8 @@
 #pragma once
-#include <memory>
 
+#include <memory>
 #include <vector>
+
 #include "Neat.h"
 
 namespace Neat
@@ -39,13 +40,21 @@ namespace Neat
                                                      int id,
                                                      double p1, double p2, double p3, double p4,
                                                      double p5, double p6, double p7, double p8, double p9);
-        // Copy Constructor
+        // Copy Factory
         static std::shared_ptr<Trait> makeCopy(const Trait &trait);
 
-        // Special Constructor creates a new Trait which is the average of 2 existing traits passed in
+        // Special Factory creates a new Trait which is the average of 2 existing traits passed in
         static std::shared_ptr<Trait> makeByAverage(const Neat &neat,
                                                     const Trait &t1, const Trait &t2);
 
+        // Special Factory which spawns off an input file
+        // This Factory assumes that some routine has already read in GENOMESTART
+        static std::shared_ptr<Trait> makeFromLine(const Neat &neat,
+                                                   const std::string &argline);
+
+        // ================================================
+        // Methods
+        // ================================================
         void toFile(std::ofstream &outFile);
 
         // Perturb the trait parameters slightly

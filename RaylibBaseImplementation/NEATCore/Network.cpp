@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 
 #include "Network.h"
 
@@ -133,7 +134,7 @@ namespace Neat
     {
         for (const auto &curnode : outputs)
         {
-            if ((curnode->activation_count) == 0)
+            if (curnode->activation_count == 0)
                 return true;
         }
 
@@ -173,9 +174,9 @@ namespace Neat
     // Returns true on success;
     bool Network::activate(const Neat &neat)
     {
-        double add_amount;  // For adding to the activesum
-        bool onetime;       // Make sure we at least activate once
-        int abortcount = 0; // Used in case the output is somehow truncated from the network
+        double add_amount{0}; // For adding to the activesum
+        bool onetime{false};  // Make sure we at least activate once
+        int abortcount = 0;   // Used in case the output is somehow truncated from the network
 
         // cout<<"Activating network: "<<this->genotype<<endl;
 
@@ -183,16 +184,14 @@ namespace Neat
         //(This only happens on the first activation, because after that they
         //  are always active)
 
-        onetime = false;
-
         while (outputsoff() || !onetime)
         {
             ++abortcount;
 
-            if (abortcount == 20)
+            if (abortcount == neat.network_abort_count)
             {
                 return false;
-                // cout<<"Inputs disconnected from output!"<<endl;
+                std::cout << "Inputs disconnected from output!" << std::endl;
             }
             // std::cout<<"Outputs are off"<<std::endl;
 
@@ -200,7 +199,7 @@ namespace Neat
             for (const auto &curnode : all_nodes)
             {
                 // Ignore SENSORS
-                if (curnode->type != SENSOR)
+                if (!curnode->isSensor())
                 {
                     curnode->activesum = 0;
                     curnode->active_flag = false; // This will tell us if it has any active inputs
@@ -212,8 +211,11 @@ namespace Neat
                         if (!curlink->time_delay)
                         {
                             add_amount = curlink->weight * curlink->in_node->get_active_out();
-                            if (curlink->in_node->active_flag || curlink->in_node->type == SENSOR)
+
+                            if (curlink->in_node->active_flag || curlink->in_node->isSensor())
                                 curnode->active_flag = true;
+                            // std::cout << "1)Node " << curnode->node_id << " adding " << add_amount << " from node " << curlink->in_node->node_id << std::endl;
+
                             curnode->activesum += add_amount;
                         }
                         else
@@ -221,6 +223,7 @@ namespace Neat
                             // Input over a time delayed connection
                             add_amount = curlink->weight * curlink->in_node->get_active_out_td();
                             curnode->activesum += add_amount;
+                            std::cout << "2)Node " << curnode->node_id << " adding " << add_amount << " from node " << curlink->in_node->node_id << std::endl;
                         }
 
                     } // End for over incoming links
@@ -232,7 +235,7 @@ namespace Neat
             // Now activate all the non-sensor nodes off their incoming activation
             for (const auto &curnode : all_nodes)
             {
-                if (curnode->type != SENSOR)
+                if (!curnode->isSensor())
                 {
                     // Only activate if some active input came in
                     if (curnode->active_flag)
@@ -254,9 +257,12 @@ namespace Neat
                         {
                             // Now run the net activation through an activation function
                             if (curnode->ftype == SIGMOID)
-                                curnode->activation = neat.fsigmoid(curnode->activesum, 4.924273, 2.4621365); // Sigmoidal activation- see comments under fsigmoid
+                                curnode->activation = neat.fsigmoid(
+                                    curnode->activesum,
+                                    neat.network_activate_sigmoid_slope,
+                                    neat.network_activate_sigmoid_constant); // Sigmoidal activation- see comments under fsigmoid
                         }
-                        // cout<<(*curnode)->activation<<endl;
+                        // std::cout << "node activation: " << curnode->activation << std::endl;
 
                         // Increment the activation_count
                         // First activation cannot be from nothing!!
@@ -279,7 +285,7 @@ namespace Neat
 
                 // cout<<"On node "<<(*curnode)->node_id<<endl;
 
-                if (curnode->type != SENSOR)
+                if (!curnode->isSensor())
                 {
                     // For each incoming connection, perform adaptation based on the trait of the connection
                     for (const auto &curlink : curnode->incoming)
@@ -360,7 +366,7 @@ namespace Neat
         for (const auto &sensPtr : inputs)
         {
             // only load values into SENSORS (not BIASes)
-            if (sensPtr->type == SENSOR)
+            if (sensPtr->isSensor())
             {
                 sensPtr->sensor_load(*sensvals);
                 sensvals++;
@@ -368,13 +374,13 @@ namespace Neat
         }
     }
 
-    void Network::load_sensors(const std::vector<float> &sensvals)
+    void Network::load_sensors(const std::vector<double> &sensvals)
     {
         size_t sensor_idx = 0;
         for (const auto &input_node : inputs)
         {
             // only load values into SENSORS (not BIASes)
-            if (input_node->type == SENSOR)
+            if (input_node->isSensor())
             {
                 if (sensor_idx < sensvals.size())
                 {

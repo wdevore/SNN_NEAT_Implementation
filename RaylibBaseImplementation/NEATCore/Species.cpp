@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 #include "Species.h"
 #include "Organism.h"
@@ -195,6 +196,12 @@ namespace Neat
 
     bool Species::remove_org(std::shared_ptr<Organism> org)
     {
+        if (organisms.empty())
+        {
+            std::cout << "ALERT: Attempt to remove nonexistent Organism from Species" << std::endl;
+            return false;
+        }
+
         auto curorg = std::find(organisms.begin(), organisms.end(), org);
 
         if (curorg == organisms.end())
@@ -236,13 +243,13 @@ namespace Neat
         Population *pop,
         std::vector<std::shared_ptr<Species>> &sorted_species)
     {
-        int count;
+        int count{0};
         std::vector<std::shared_ptr<Organism>>::iterator curorg;
 
-        int poolsize; // The number of Organisms in the old generation
+        int poolsize{0}; // The number of Organisms in the old generation
 
-        int orgnum; // Random variable
-        int orgcount;
+        int orgnum{0}; // Random variable
+        int orgcount{0};
         std::shared_ptr<Organism> mom; // Parent Organisms
         std::shared_ptr<Organism> dad;
         std::shared_ptr<Organism> baby; // The new Organism
@@ -254,34 +261,34 @@ namespace Neat
         std::shared_ptr<Organism> comporg;                          // For Species determination through comparison
 
         std::shared_ptr<Species> randspecies; // For mating outside the Species
-        double randmult;
-        int randspeciesnum;
-        int spcount;
+        double randmult{0.0};
+        int randspeciesnum{0};
+        int spcount{0};
         std::vector<std::shared_ptr<Species>>::iterator cursp;
 
         std::shared_ptr<Network> net_analogue; // For adding link to test for recurrency
-        int pause;
+        int pause{0};
 
-        bool outside;
+        bool outside{false};
 
-        bool found; // When a Species is found
+        bool found{false}; // When a Species is found
 
-        bool champ_done = false; // Flag the preservation of the champion
+        bool champ_done{false}; // Flag the preservation of the champion
 
         std::shared_ptr<Organism> thechamp;
 
-        int giveup; // For giving up finding a mate outside the species
+        int giveup{0}; // For giving up finding a mate outside the species
 
-        bool mut_struct_baby;
-        bool mate_baby;
+        bool mut_struct_baby{false};
+        bool mate_baby{false};
 
         // The weight mutation power is species specific depending on its age
         double mut_power = neat.weight_mut_power;
 
         // Roulette wheel variables
-        double total_fitness = 0.0;
-        double marble; // The marble will have a number between 0 and total_fitness
-        double spin;   // 0Fitness total while the wheel is spinning
+        double total_fitness{0.0};
+        double marble{0.0}; // The marble will have a number between 0 and total_fitness
+        double spin{0.0};   // 0Fitness total while the wheel is spinning
 
         // Compute total fitness of species for a roulette wheel
         // Note: You don't get much advantage from a roulette here
@@ -292,10 +299,9 @@ namespace Neat
         // }
 
         // Check for a mistake
-        if ((expected_offspring > 0) &&
-            (organisms.size() == 0))
+        if ((expected_offspring > 0) && organisms.empty())
         {
-            //    std::cout<<"ERROR:  ATTEMPT TO REPRODUCE OUT OF EMPTY SPECIES"<<std::endl;
+            std::cout << "ERROR:  ATTEMPT TO REPRODUCE OUT OF EMPTY SPECIES" << std::endl;
             return false;
         }
 
@@ -307,7 +313,6 @@ namespace Neat
         // one at a time
         for (count = 0; count < expected_offspring; count++)
         {
-
             mut_struct_baby = false;
             mate_baby = false;
 
@@ -316,7 +321,7 @@ namespace Neat
             // Debug Trap
             if (expected_offspring > neat.pop_size)
             {
-                //      std::cout<<"ALERT: EXPECTED OFFSPRING = "<<expected_offspring<<std::endl;
+                std::cout << "ALERT: EXPECTED OFFSPRING = " << expected_offspring << std::endl;
                 //      cin>>pause;
             }
 
@@ -324,23 +329,22 @@ namespace Neat
             if ((thechamp->super_champ_offspring) > 0)
             {
                 mom = thechamp;
-                new_genome = (mom->gnome)->duplicate(neat, count);
+                new_genome = mom->gnome->duplicate(neat, count);
 
-                if ((thechamp->super_champ_offspring) == 1)
-                {
-                }
+                // if (thechamp->super_champ_offspring == 1)
+                // {
+                // }
 
                 // Most superchamp offspring will have their connection weights mutated only
                 // The last offspring will be an exact duplicate of this super_champ
                 // Note: Superchamp offspring only occur with stolen babies!
                 //       Settings used for published experiments did not use this
-                if ((thechamp->super_champ_offspring) > 1)
+                if (thechamp->super_champ_offspring > 1)
                 {
-                    if ((neat.randfloat() < 0.8) ||
-                        (neat.mutate_add_link_prob == 0.0))
+                    if ((neat.randfloat() < 0.8) || (neat.mutate_add_link_prob == 0.0))
                         // ABOVE LINE IS FOR:
                         // Make sure no links get added when the system has link adding disabled
-                        new_genome->mutate_link_weights(neat, mut_power, 1.0, GAUSSIAN);
+                        new_genome->mutate_link_weights(neat, mut_power, 1.0, Mutator::GAUSSIAN);
                     else
                     {
                         // Sometimes we add a link to a superchamp
@@ -352,11 +356,11 @@ namespace Neat
 
                 baby = Organism::makeFromGenome(neat, 0.0, new_genome, generation);
 
-                if ((thechamp->super_champ_offspring) == 1)
+                if (thechamp->super_champ_offspring == 1)
                 {
                     if (thechamp->pop_champ)
                     {
-                        // std::cout<<"The new org baby's genome is "<<baby->gnome<<std::endl;
+                        std::cout << "The new org baby's genome is " << baby->gnome << std::endl;
                         baby->pop_champ_child = true;
                         baby->high_fit = mom->orig_fitness;
                     }
@@ -365,13 +369,11 @@ namespace Neat
                 thechamp->super_champ_offspring--;
             }
             // If we have a Species champion, just clone it
-            else if ((!champ_done) &&
-                     (expected_offspring > 5))
+            else if (!champ_done && expected_offspring > 5)
             {
-
                 mom = thechamp; // Mom is the champ
 
-                new_genome = (mom->gnome)->duplicate(neat, count);
+                new_genome = mom->gnome->duplicate(neat, count);
 
                 // Baby is just like mommy
                 baby = Organism::makeFromGenome(neat, 0.0, new_genome, generation);
@@ -382,7 +384,6 @@ namespace Neat
             // If there is only one organism in the pool, then always mutate
             else if ((neat.randfloat() < neat.mutate_only_prob) || poolsize == 0)
             {
-
                 // Choose the random parent
 
                 // RANDOM PARENT CHOOSER
@@ -406,20 +407,20 @@ namespace Neat
 
                 mom = (*curorg);
 
-                new_genome = (mom->gnome)->duplicate(neat, count);
+                new_genome = mom->gnome->duplicate(neat, count);
 
                 // Do the mutation depending on probabilities of
                 // various mutations
 
                 if (neat.randfloat() < neat.mutate_add_node_prob)
                 {
-                    // std::cout<<"mutate add node"<<std::endl;
+                    std::cout << "mutate add node" << std::endl;
                     new_genome->mutate_add_node(neat, pop->innovations, pop->cur_node_id, pop->cur_innov_num);
                     mut_struct_baby = true;
                 }
                 else if (neat.randfloat() < neat.mutate_add_link_prob)
                 {
-                    // std::cout<<"mutate add link"<<std::endl;
+                    std::cout << "mutate add link" << std::endl;
                     new_genome->genesis(neat, generation);
                     new_genome->mutate_add_link(neat, (pop->innovations), pop->cur_innov_num, neat.newlink_tries);
 
@@ -469,7 +470,6 @@ namespace Neat
             // Otherwise we should mate
             else
             {
-
                 // Choose the random mom
                 orgnum = neat.randint(0, poolsize);
                 curorg = organisms.begin();
@@ -580,10 +580,9 @@ namespace Neat
                 // Determine whether to mutate the baby's Genome
                 // This is done randomly or if the mom and dad are the same organism
                 if ((neat.randfloat() > neat.mate_only_prob) ||
-                    ((dad->gnome)->genome_id == (mom->gnome)->genome_id) ||
-                    (((dad->gnome)->compatibility(neat, mom->gnome)) == 0.0))
+                    (dad->gnome->genome_id == mom->gnome->genome_id) ||
+                    ((dad->gnome->compatibility(neat, mom->gnome)) == 0.0))
                 {
-
                     // Do the mutation depending on probabilities of
                     // various mutations
                     if (neat.randfloat() < neat.mutate_add_node_prob)
@@ -656,7 +655,7 @@ namespace Neat
             if (curspecies == (pop->species).end())
             {
                 // Create the first species
-                newspecies = Species::makeFromNovel(++(pop->last_species), false);
+                newspecies = Species::makeFromNovel(++(pop->last_species), true);
                 (pop->species).push_back(newspecies);
 
                 newspecies->add_Organism(baby); // Add the baby
@@ -666,8 +665,7 @@ namespace Neat
             {
                 comporg = (*curspecies)->first();
                 found = false;
-                while ((curspecies != (pop->species).end()) &&
-                       (!found))
+                while (curspecies != (pop->species).end() && !found)
                 {
                     if (comporg == 0)
                     {
@@ -676,7 +674,7 @@ namespace Neat
                         if (curspecies != (pop->species).end())
                             comporg = (*curspecies)->first();
                     }
-                    else if (((baby->gnome)->compatibility(neat, comporg->gnome)) < neat.compat_threshold)
+                    else if ((baby->gnome->compatibility(neat, comporg->gnome)) < neat.compat_threshold)
                     {
                         // Found compatible species, so add this organism to it
                         (*curspecies)->add_Organism(baby);

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "Trait.h"
 
@@ -26,6 +27,7 @@ namespace Neat
                                                  double p5, double p6, double p7, double p8, double p9)
     {
         auto newTrait = std::make_shared<Trait>();
+        newTrait->params.resize(neat.num_trait_params);
 
         newTrait->trait_id = id;
         newTrait->params[0] = p1;
@@ -37,14 +39,15 @@ namespace Neat
         newTrait->params[6] = p7;
         newTrait->params[7] = 0;
 
-        newTrait->params.resize(neat.num_trait_params);
-
         return newTrait;
     }
 
     std::shared_ptr<Trait> Trait::makeCopy(const Trait &trait)
     {
-        return std::make_shared<Trait>(trait);
+        auto newTrait = std::make_shared<Trait>();
+        newTrait->params = trait.params;
+        newTrait->trait_id = trait.trait_id;
+        return newTrait;
     }
 
     std::shared_ptr<Trait> Trait::makeByAverage(const Neat &neat, const Trait &t1, const Trait &t2)
@@ -53,10 +56,28 @@ namespace Neat
 
         newTrait->params.clear();
         newTrait->params.resize(t1.params.size());
+
         newTrait->trait_id = t1.trait_id;
 
         for (int count = 0; count < t1.params.size(); count++)
             newTrait->params[count] = ((t1.params[count]) + (t2.params)[count]) / 2.0;
+
+        return newTrait;
+    }
+
+    std::shared_ptr<Trait> Trait::makeFromLine(const Neat &neat, const std::string &argline)
+    {
+        auto newTrait = std::make_shared<Trait>();
+        newTrait->params.resize(neat.num_trait_params);
+
+        std::stringstream ss(argline);
+        ss >> newTrait->trait_id;
+
+        // IS THE STOPPING CONDITION CORRECT?  ALERT
+        for (int count = 0; count < neat.num_trait_params; count++)
+        {
+            ss >> newTrait->params[count];
+        }
 
         return newTrait;
     }

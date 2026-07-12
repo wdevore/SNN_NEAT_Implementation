@@ -227,12 +227,13 @@ namespace NEAT
 								(((*curlink)->in_node)->type == SENSOR))
 								(*curnode)->active_flag = true;
 							(*curnode)->activesum += add_amount;
-							// std::cout<<"Node "<<(*curnode)->node_id<<" adding "<<add_amount<<" from node "<<((*curlink)->in_node)->node_id<<std::endl;
+							// std::cout << "1)Node " << (*curnode)->node_id << " adding " << add_amount << " from node " << ((*curlink)->in_node)->node_id << std::endl;
 						}
 						else
 						{
 							// Input over a time delayed connection
 							add_amount = ((*curlink)->weight) * (((*curlink)->in_node)->get_active_out_td());
+							std::cout << "2)Node " << (*curnode)->node_id << " adding " << add_amount << " from node " << ((*curlink)->in_node)->node_id << std::endl;
 							(*curnode)->activesum += add_amount;
 						}
 
@@ -270,7 +271,7 @@ namespace NEAT
 							if ((*curnode)->ftype == SIGMOID)
 								(*curnode)->activation = NEAT::fsigmoid((*curnode)->activesum, 4.924273, 2.4621365); // Sigmoidal activation- see comments under fsigmoid
 						}
-						// cout<<(*curnode)->activation<<endl;
+						// std::cout << "node activation: " << (*curnode)->activation << std::endl;
 
 						// Increment the activation_count
 						// First activation cannot be from nothing!!

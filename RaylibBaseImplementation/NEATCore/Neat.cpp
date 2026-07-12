@@ -81,6 +81,9 @@ namespace Neat
         paramFile >> trait_param_mut_prob;
 
         paramFile >> curword;
+        paramFile >> trait_mutation_power;
+
+        paramFile >> curword;
         paramFile >> linktrait_mut_sig;
 
         paramFile >> curword;
@@ -173,6 +176,18 @@ namespace Neat
         paramFile >> curword;
         paramFile >> num_runs;
 
+        paramFile >> curword;
+        paramFile >> network_activate_sigmoid_slope;
+
+        paramFile >> curword;
+        paramFile >> network_activate_sigmoid_constant;
+
+        paramFile >> curword;
+        paramFile >> network_abort_count;
+
+        paramFile >> curword;
+        paramFile >> organism_fitness_measure;
+
         if (output)
         {
             std::cout << "============== Parameters ================" << std::endl;
@@ -209,6 +224,10 @@ namespace Neat
             std::cout << "print_every: " << print_every << std::endl;
             std::cout << "babies_stolen: " << babies_stolen << std::endl;
             std::cout << "num_runs: " << num_runs << std::endl;
+            std::cout << "network_activate_sigmoid_slope: " << network_activate_sigmoid_slope << std::endl;
+            std::cout << "network_activate_sigmoid_constant: " << network_activate_sigmoid_constant << std::endl;
+            std::cout << "network_abort_count: " << network_abort_count << std::endl;
+            std::cout << "organism_fitness_measure: " << organism_fitness_measure << std::endl;
             std::cout << "==========================================" << std::endl;
         }
 
@@ -259,7 +278,7 @@ namespace Neat
         // return (1/(1+(exp(-activesum-constant)))); //simple left shifted
 
         // NON-SHIFTED STEEPENED
-        return (1 / (1 + (exp(-(slope * activesum))))); // Compressed
+        return (1 / (1 + (std::exp(-(slope * activesum))))); // Compressed
     }
 
     double Neat::oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) const

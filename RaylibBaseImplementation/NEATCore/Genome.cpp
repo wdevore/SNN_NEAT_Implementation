@@ -1,9 +1,12 @@
 #include <stdexcept>
 #include <algorithm>
 #include <cmath>
+#include <iostream>
+#include <sstream>
 
 #include "Genome.h"
 #include "Network.h"
+#include "NNode.h"
 
 namespace Neat
 {
@@ -486,6 +489,109 @@ namespace Neat
         return newGenome;
     }
 
+    std::shared_ptr<Genome> Genome::makeFromFile(const Neat &neat,
+                                                 int id, std::ifstream &iFile)
+    {
+        auto newGenome = std::make_shared<Genome>();
+
+        std::string curline;
+
+        newGenome->genome_id = id;
+
+        // Loop until file is finished, parsing each line
+        while (std::getline(iFile, curline))
+        {
+            std::cout << curline << std::endl;
+
+            std::stringstream ss(curline);
+            std::string curword;
+            ss >> curword;
+
+            if (curword.empty())
+                continue; // Skip empty lines
+
+            printf("%s test\n", curword.c_str());
+
+            // Check for end of Genome
+            if (curword == "genomeend")
+            {
+                int idcheck;
+                ss >> idcheck;
+                if (idcheck != newGenome->genome_id)
+                {
+                    std::cout << "ERROR: id mismatch in genome. Got: " << idcheck << " Expected: " << newGenome->genome_id << std::endl;
+                }
+                break;
+            }
+
+            // Ignore genomestart if it hasn't been gobbled yet
+            else if (curword == "genomestart")
+            {
+                std::cout << "genomestart" << std::endl;
+            }
+
+            // Ignore comments surrounded by - they get printed to screen
+            else if (curword == "/*")
+            {
+                // strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
+                while (ss >> curword && curword != "*/")
+                {
+                    // std::cout << curword << " ";
+                    // strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
+                }
+                // std::cout << std::endl;
+            }
+
+            // Read in a trait
+            else if (curword == "trait")
+            {
+                std::string argline;
+                // strcpy(argline, NEAT::getUnits(curline, curwordnum, wordcount, delimiters));
+
+                std::getline(ss, argline);
+
+                // Allocate the new trait
+                auto newtrait = Trait::makeFromLine(neat, argline);
+
+                // Add the trait to the list of traits
+                newGenome->traits.push_back(newtrait);
+            }
+
+            // Read in a node
+            else if (curword == "node")
+            {
+                std::string argline;
+                // strcpy(argline, NEAT::getUnits(curline, curwordnum, wordcount, delimiters));
+
+                std::getline(ss, argline);
+                // Allocate the new node
+                auto newnode = NNode::makeFromLine(neat, argline, newGenome->traits);
+
+                // Add the node to the list of nodes
+                newGenome->nodes.push_back(newnode);
+            }
+
+            // Read in a Gene
+            else if (curword == "gene")
+            {
+                std::string argline;
+                // strcpy(argline, NEAT::getUnits(curline, curwordnum, wordcount, delimiters));
+
+                std::getline(ss, argline);
+                // std::cout << "New gene: " << ss.str() << std::endl;
+                // Allocate the new Gene
+                auto newgene = Gene::makeFromLine(neat, argline, newGenome->traits, newGenome->nodes);
+
+                // Add the gene to the genome
+                newGenome->genes.push_back(newgene);
+
+                // std::cout<<"Added gene " << newgene << std::endl;
+            }
+        }
+
+        return newGenome;
+    }
+
     int Genome::get_last_node_id()
     {
         if (nodes.empty())
@@ -593,7 +699,7 @@ namespace Neat
         // Duplicate NNodes
         for (const auto &node : nodes)
         {
-            std::shared_ptr<Trait> assoc_trait = nullptr;
+            std::shared_ptr<Trait> assoc_trait;
             // First, find the trait that this node points to
             if (node->nodetrait)
             {
@@ -617,7 +723,7 @@ namespace Neat
         // Duplicate Genes
         for (const auto &gene : genes)
         {
-            std::shared_ptr<Trait> assoc_trait = nullptr;
+            std::shared_ptr<Trait> assoc_trait;
             // First find the nodes connected by the gene's link
             auto inode = gene->link->in_node->dup;
             auto onode = gene->link->out_node->dup;
@@ -649,11 +755,6 @@ namespace Neat
 
     bool Genome::verify()
     {
-        if (this == 0)
-        {
-            return false; // Or throw an exception
-        }
-
         // Check each gene's nodes
         for (const auto &gene : genes)
         {
@@ -696,6 +797,7 @@ namespace Neat
                 {
                     // Duplicate gene found, which might indicate an issue.
                     // Depending on the desired strictness, you might return false here.
+                    std::cout << "Duplicate Gene found: in(" << gene1->link->in_node->node_id << ") out(" << gene1->link->out_node->node_id << ")" << std::endl;
                 }
             }
         }
@@ -715,7 +817,7 @@ namespace Neat
             }
         }
 
-        // cout<<"GENOME OK!"<<endl;
+        // std::cout << "GENOME (" << genome_id << ") verified OK!" << std::endl;
 
         return true;
     }
@@ -847,7 +949,7 @@ namespace Neat
                     else if (randchoice > coldgausspoint)
                         curgene->link->weight = randnum;
                 }
-                else if (mut_type == COLDGAUSSIAN)
+                else if (mut_type == Mutator::COLDGAUSSIAN)
                     curgene->link->weight = randnum;
 
                 // Cap the weights at 8.0 (experimental)
@@ -1493,7 +1595,7 @@ namespace Neat
                       sensors.end());
 
         // If all sensors are connected, quit
-        if (sensors.size() == 0)
+        if (sensors.empty())
             return;
 
         // Pick randomly from remaining sensors

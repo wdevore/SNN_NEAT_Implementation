@@ -10,15 +10,17 @@ namespace IOControl
     private:
         /* data */
     public:
-        IOControl::KeyControl keyS{KEY_S};
+        IOControl::KeyControl keyE{KEY_E};
         IOControl::KeyControl keyF{KEY_F};
-        IOControl::KeyControl keyW{KEY_W};
-        IOControl::KeyControl keyX{KEY_X};
+        IOControl::KeyControl keyH{KEY_H};
+        IOControl::KeyControl keyI{KEY_I};
         IOControl::KeyControl keyL{KEY_L};
+        IOControl::KeyControl keyO{KEY_O};
         IOControl::KeyControl keyP{KEY_P};
         IOControl::KeyControl keyR{KEY_R};
-        IOControl::KeyControl keyE{KEY_E};
-        IOControl::KeyControl keyH{KEY_H};
+        IOControl::KeyControl keyS{KEY_S};
+        IOControl::KeyControl keyW{KEY_W};
+        IOControl::KeyControl keyX{KEY_X};
 
         IOControl::KeyControl key1{KEY_ONE};
         IOControl::KeyControl key2{KEY_TWO};

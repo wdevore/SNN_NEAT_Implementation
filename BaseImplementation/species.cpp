@@ -496,7 +496,7 @@ namespace NEAT
 		if ((expected_offspring > 0) &&
 			(organisms.size() == 0))
 		{
-			//    std::cout<<"ERROR:  ATTEMPT TO REPRODUCE OUT OF EMPTY SPECIES"<<std::endl;
+			std::cout << "ERROR:  ATTEMPT TO REPRODUCE OUT OF EMPTY SPECIES" << std::endl;
 			return false;
 		}
 
@@ -517,7 +517,7 @@ namespace NEAT
 			// Debug Trap
 			if (expected_offspring > NEAT::pop_size)
 			{
-				//      std::cout<<"ALERT: EXPECTED OFFSPRING = "<<expected_offspring<<std::endl;
+				std::cout << "ALERT: EXPECTED OFFSPRING = " << expected_offspring << std::endl;
 				//      cin>>pause;
 			}
 
@@ -527,9 +527,9 @@ namespace NEAT
 				mom = thechamp;
 				new_genome = (mom->gnome)->duplicate(count);
 
-				if ((thechamp->super_champ_offspring) == 1)
-				{
-				}
+				// if ((thechamp->super_champ_offspring) == 1)
+				// {
+				// }
 
 				// Most superchamp offspring will have their connection weights mutated only
 				// The last offspring will be an exact duplicate of this super_champ
@@ -537,8 +537,7 @@ namespace NEAT
 				//       Settings used for published experiments did not use this
 				if ((thechamp->super_champ_offspring) > 1)
 				{
-					if ((randfloat() < 0.8) ||
-						(NEAT::mutate_add_link_prob == 0.0))
+					if ((randfloat() < 0.8) || (NEAT::mutate_add_link_prob == 0.0))
 						// ABOVE LINE IS FOR:
 						// Make sure no links get added when the system has link adding disabled
 						new_genome->mutate_link_weights(mut_power, 1.0, GAUSSIAN);
@@ -558,7 +557,7 @@ namespace NEAT
 				{
 					if (thechamp->pop_champ)
 					{
-						// std::cout<<"The new org baby's genome is "<<baby->gnome<<std::endl;
+						std::cout << "The new org baby's genome is " << baby->gnome << std::endl;
 						baby->pop_champ_child = true;
 						baby->high_fit = mom->orig_fitness;
 					}
@@ -567,8 +566,7 @@ namespace NEAT
 				thechamp->super_champ_offspring--;
 			}
 			// If we have a Species champion, just clone it
-			else if ((!champ_done) &&
-					 (expected_offspring > 5))
+			else if ((!champ_done) && (expected_offspring > 5))
 			{
 
 				mom = thechamp; // Mom is the champ
@@ -615,13 +613,13 @@ namespace NEAT
 
 				if (randfloat() < NEAT::mutate_add_node_prob)
 				{
-					// std::cout<<"mutate add node"<<std::endl;
+					std::cout << "mutate add node" << std::endl;
 					new_genome->mutate_add_node(pop->innovations, pop->cur_node_id, pop->cur_innov_num);
 					mut_struct_baby = true;
 				}
 				else if (randfloat() < NEAT::mutate_add_link_prob)
 				{
-					// std::cout<<"mutate add link"<<std::endl;
+					std::cout << "mutate add link" << std::endl;
 					net_analogue = new_genome->genesis(generation);
 					new_genome->mutate_add_link(pop->innovations, pop->cur_innov_num, NEAT::newlink_tries);
 					delete net_analogue;

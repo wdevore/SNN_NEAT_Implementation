@@ -1,3 +1,4 @@
+experiment 4
 trait_param_mut_prob 0.5 
 trait_mutation_power 1.0
 linktrait_mut_sig 1.0
@@ -31,3 +32,7 @@ newlink_tries 20
 print_every 60
 babies_stolen 0
 num_runs 1
+network_activate_sigmoid_slope 4.924273
+network_activate_sigmoid_constant 2.4621365
+network_abort_count 20
+organism_fitness_measure 0.001

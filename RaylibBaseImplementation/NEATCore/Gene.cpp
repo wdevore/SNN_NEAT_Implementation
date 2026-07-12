@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <fstream>
+#include <sstream>
 
 #include "Gene.h"
 
@@ -92,6 +94,67 @@ namespace Neat
         newGene->frozen = gene.frozen;
 
         newGene->link = Link::makeCopy(neat, gene.link);
+
+        return newGene;
+    }
+
+    std::shared_ptr<Gene> Gene::makeFromLine(const Neat &neat,
+                                             const std::string argline,
+                                             std::vector<std::shared_ptr<Trait>> &traits,
+                                             std::vector<std::shared_ptr<NNode>> &nodes)
+    {
+        auto newGene = std::make_shared<Gene>();
+
+        // Gene parameter holders
+        int traitnum;
+        int inodenum;
+        int onodenum;
+        std::shared_ptr<NNode> inode;
+        std::shared_ptr<NNode> onode;
+        double weight;
+        int recur;
+        std::shared_ptr<Trait> traitptr;
+
+        // Get the gene parameters
+
+        std::stringstream ss(argline);
+
+        ss >> traitnum >> inodenum >> onodenum >> weight >> recur >> newGene->innovation_num >> newGene->mutation_num >> newGene->enable;
+        // std::cout << traitnum << " " << inodenum << " " << onodenum << " ";
+        // std::cout << weight << " " << recur << " " << innovation_num << " ";
+        // std::cout << mutation_num << " " << enable << std::endl;
+
+        newGene->frozen = false; // TODO: MAYBE CHANGE
+
+        // Get a pointer to the linktrait
+        if (traitnum == 0)
+            traitptr = nullptr;
+        else
+        {
+            auto curtrait_it = std::find_if(traits.begin(), traits.end(),
+                                            [traitnum](const auto &t)
+                                            { return t->trait_id == traitnum; });
+            if (curtrait_it != traits.end())
+            {
+                traitptr = *curtrait_it;
+            }
+        }
+
+        // Get a pointer to the input node
+        auto inode_it = std::find_if(nodes.begin(), nodes.end(),
+                                     [inodenum](const auto &n)
+                                     { return n->node_id == inodenum; });
+        if (inode_it != nodes.end())
+            inode = *inode_it;
+
+        // Get a pointer to the output node
+        auto onode_it = std::find_if(nodes.begin(), nodes.end(),
+                                     [onodenum](const auto &n)
+                                     { return n->node_id == onodenum; });
+        if (onode_it != nodes.end())
+            onode = *onode_it;
+
+        newGene->link = Link::makeFromTrait(neat, traitptr, weight, inode, onode, recur);
 
         return newGene;
     }

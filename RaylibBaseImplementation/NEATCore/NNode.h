@@ -105,15 +105,23 @@ namespace Neat
         // ================================================
         static std::shared_ptr<NNode> makeFromNeat(const Neat &neat);
         static std::shared_ptr<NNode> makeFromType(Nodetype ntype, int nodeid);
+
         static std::shared_ptr<NNode> makeFromPlacment(Nodetype ntype, int nodeid, Nodeplace placement);
         // Copy based on Trait
         static std::shared_ptr<NNode> makeFromTrait(const NNode &nnode, std::shared_ptr<Trait> t);
         static std::shared_ptr<NNode> makeCopy(const NNode &nnode);
+        static std::shared_ptr<NNode> makeFromLine(const Neat &neat, const std::string &argline, std::vector<std::shared_ptr<Trait>> &t);
+
+        // ================================================
+        // Methods
+        // ================================================
+        bool isSensor() { return (type == SENSOR); }
+        bool isNeuron() { return (type == NEURON); }
 
         void setTrait(const std::shared_ptr<Trait> &t) { nodetrait = t; }
 
         // Return activation currently in node, if it has been activated, for step
-        double get_active_out() { return std::max<float>(0.0, activation_count); }
+        double get_active_out() { return (activation_count > 0) ? activation : 0.0; }
 
         // Return activation currently in node from PREVIOUS (time-delayed) time step,
         // if there is one

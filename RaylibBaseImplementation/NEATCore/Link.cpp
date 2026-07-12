@@ -41,7 +41,7 @@ namespace Neat
 
         newLink->linktrait = lt;
 
-        if (lt != 0)
+        if (lt)
             newLink->trait_id = lt->trait_id;
         else
             newLink->trait_id = 1;

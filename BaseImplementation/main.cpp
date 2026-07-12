@@ -117,7 +117,8 @@ int main(int argc, char *argv[])
   std::cout << "4 - XOR" << std::endl;
   std::cout << "Number: ";
 
-  std::cin >> choice;
+  // std::cin >> choice;
+  choice = 4;
 
   switch (choice)
   {

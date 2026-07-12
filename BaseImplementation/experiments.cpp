@@ -166,8 +166,10 @@ namespace NEAT
 
     net = org->net;
     numnodes = ((org->gnome)->nodes).size();
+    // std::cout << "How many nodes to visit: " << numnodes << std::endl;
 
     net_depth = net->max_depth();
+    // std::cout << "Evaluate Network DEPTH: " << net_depth << std::endl;
 
     // TEST CODE: REMOVE
     // cout<<"ACTIVATING: "<<org->gnome<<endl;

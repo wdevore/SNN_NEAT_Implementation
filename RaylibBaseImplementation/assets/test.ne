@@ -3,12 +3,12 @@ trait_param_mut_prob 0.5
 trait_mutation_power 1.0
 linktrait_mut_sig 1.0
 nodetrait_mut_sig 0.5
-weigh_mut_power 2.5
+weight_mut_power 2.5
 recur_prob 0.00
 disjoint_coeff 1.0
 excess_coeff 1.0
 mutdiff_coeff 0.4
-compat_thresh 3.0
+compat_threshold 3.0
 age_significance 1.0
 survival_thresh 0.20
 mutate_only_prob 0.25
@@ -32,3 +32,7 @@ newlink_tries 20
 print_every 30
 babies_stolen 0
 num_runs 100
+network_activate_sigmoid_slope 4.924273
+network_activate_sigmoid_constant 2.4621365
+network_abort_count 20
+organism_fitness_measure 0.001

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Neat.h"
+#include "Experiment.h"
 
 namespace Neat
 {
@@ -9,13 +10,18 @@ namespace Neat
     private:
         /* data */
     public:
-        int stepCount{0};
+        int genId{1};
 
-        Simulation(/* args */);
+        Experiment &experiment;
+
+        Simulation(Experiment &experiment) : experiment{experiment} {};
         ~Simulation();
 
         void reset();
+        void initialize(const Neat &neat, int gens);
         void step(const Neat &neat);
+
+        void showReport(const Neat &neat);
     };
 
 } // namespace Neat

@@ -23,6 +23,8 @@ namespace IOControl
         keyR.update();
         keyE.update();
         keyH.update();
+        keyI.update();
+        keyO.update();
 
         key1.update();
         key2.update();

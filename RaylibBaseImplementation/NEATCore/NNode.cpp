@@ -1,5 +1,6 @@
 #include <iostream>
 #include <algorithm>
+#include <sstream>
 
 #include "Network.h"
 #include "NNode.h"
@@ -16,9 +17,7 @@ namespace Neat
     {
     }
 
-    std::shared_ptr<NNode> makeFromPlacment(Nodetype ntype, int nodeid, Nodeplace placement);
-
-    std::shared_ptr<NNode> makeFromNeat(const Neat &neat)
+    std::shared_ptr<NNode> NNode::makeFromNeat(const Neat &neat)
     {
         auto newNode = std::make_shared<NNode>();
         newNode->params.resize(neat.num_trait_params);
@@ -26,16 +25,34 @@ namespace Neat
         return newNode;
     }
 
-    std::shared_ptr<NNode> makeFromType(Nodetype ntype, int nodeid)
+    std::shared_ptr<NNode> NNode::makeFromType(Nodetype ntype, int nodeid)
     {
-        auto newNode = makeFromPlacment(ntype, nodeid, HIDDEN);
+        auto newNode = std::make_shared<NNode>();
+
+        newNode->active_flag = false;
+        newNode->activesum = 0;
+        newNode->activation = 0;
+        newNode->output = 0;
+        newNode->last_activation = 0;
+        newNode->last_activation2 = 0;
+        newNode->type = ntype;         // NEURON or SENSOR type
+        newNode->activation_count = 0; // Inactive upon creation
+        newNode->node_id = nodeid;
+        newNode->ftype = SIGMOID;
+        newNode->nodetrait = 0;
+        newNode->gen_node_label = HIDDEN;
+        newNode->dup = 0;
+        newNode->analogue = 0;
+        newNode->frozen = false;
+        newNode->trait_id = 1;
+        newNode->override = false;
 
         return newNode;
     }
 
-    std::shared_ptr<NNode> makeFromPlacment(Nodetype ntype, int nodeid, Nodeplace placement)
+    std::shared_ptr<NNode> NNode::makeFromPlacment(Nodetype ntype, int nodeid, Nodeplace placement)
     {
-        auto newNode = makeFromType(ntype, nodeid);
+        auto newNode = std::make_shared<NNode>();
 
         newNode->active_flag = false;
         newNode->activesum = 0;
@@ -61,7 +78,7 @@ namespace Neat
     // incoming and outgoing are not copied as they represent the phenotype network structure
     std::shared_ptr<NNode> NNode::makeFromTrait(const NNode &nnode, std::shared_ptr<Trait> t)
     {
-        auto newNode = makeFromPlacment(nnode.type, nnode.node_id, nnode.gen_node_label);
+        auto newNode = std::make_shared<NNode>();
 
         newNode->active_flag = nnode.active_flag;
         newNode->activesum = nnode.activesum;
@@ -69,11 +86,15 @@ namespace Neat
         newNode->output = nnode.output;
         newNode->last_activation = nnode.last_activation;
         newNode->last_activation2 = nnode.last_activation2;
+        newNode->type = nnode.type; // NEURON or SENSOR type
 
         newNode->activation_count = nnode.activation_count;
+        newNode->node_id = nnode.node_id;
 
         newNode->ftype = nnode.ftype;
         newNode->nodetrait = t;
+        newNode->gen_node_label = nnode.gen_node_label;
+
         if (t)
         {
             newNode->trait_id = t->trait_id;
@@ -114,6 +135,48 @@ namespace Neat
         newNode->frozen = nnode.frozen;
         newNode->trait_id = nnode.trait_id;
         newNode->override = nnode.override;
+
+        return newNode;
+    }
+
+    std::shared_ptr<NNode> NNode::makeFromLine(
+        const Neat &neat,
+        const std::string &argline,
+        std::vector<std::shared_ptr<Trait>> &traits)
+    {
+        auto newNode = std::make_shared<NNode>();
+
+        int traitnum;
+        int nodety, nodepl;
+
+        newNode->activesum = 0;
+
+        std::stringstream ss(argline);
+
+        ss >> newNode->node_id >> traitnum >> nodety >> nodepl;
+        newNode->type = (Nodetype)nodety;
+        newNode->gen_node_label = (Nodeplace)nodepl;
+
+        // Get the Sensor Identifier and Parameter String
+        // mySensor = SensorRegistry::getSensor(id, param);
+        newNode->frozen = false; // TODO: Maybe change
+
+        // Get a pointer to the trait this node points to
+        if (traitnum == 0)
+            newNode->nodetrait = nullptr;
+        else
+        {
+            auto curtrait_it = std::find_if(traits.begin(), traits.end(),
+                                            [traitnum](const auto &t)
+                                            { return t->trait_id == traitnum; });
+            if (curtrait_it != traits.end())
+            {
+                newNode->nodetrait = *curtrait_it;
+                newNode->trait_id = newNode->nodetrait->trait_id;
+            }
+        }
+
+        newNode->override = false;
 
         return newNode;
     }

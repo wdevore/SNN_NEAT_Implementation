@@ -22,7 +22,7 @@ namespace Neat
         newOrg->orig_fitness = fit;
         newOrg->gnome = g;
         newOrg->net = newOrg->update_phenotype(neat);
-        newOrg->species = 0; // Start it in no Species
+        // newOrg->species; // Start it in no Species. Note shared pointers default to nullptr
         newOrg->expected_offspring = 0;
         newOrg->generation = gen;
         newOrg->eliminate = false;

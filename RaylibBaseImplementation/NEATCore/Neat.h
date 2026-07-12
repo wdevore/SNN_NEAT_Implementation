@@ -48,12 +48,28 @@ namespace Neat
         int print_every{0};   // Tells to print population to file every n generations
         int babies_stolen{0}; // The number of babies to siphen off to the champions
         int num_runs{0};
+        int network_abort_count{}; // Used in case the output is somehow truncated from the network
+
+        double network_activate_sigmoid_slope{0};    // Network activation sigmoid function slope parameter
+        double network_activate_sigmoid_constant{0}; // Network activation sigmoid function constant parameter
+        double organism_fitness_measure{0};          // Measure of fitness for organisms
 
         Neat(/* args */);
         ~Neat();
 
         int getUnitCount(const std::string &string, const std::string &set);
         bool loadNeatParams(const std::string &file, bool output);
+
+        // =================================================================
+        // Randoms
+        // =================================================================
+        const int random_seed = 13163;
+
+        void initialize()
+        {
+            srand(random_seed);
+        }
+
         double gaussrand() const;
 
         inline int randposneg() const

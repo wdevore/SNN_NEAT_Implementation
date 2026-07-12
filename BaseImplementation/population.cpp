@@ -466,12 +466,12 @@ namespace NEAT
 		int one_tenth_stolen;
 
 		std::vector<Species *> sorted_species; // Species sorted by max fit org in Species
-		int stolen_babies;					   // Babies taken from the bad species and given to the champs
+		int stolen_babies = 0;				   // Babies taken from the bad species and given to the champs
 
-		int half_pop;
+		int half_pop = 0;
 
-		int best_species_num; // Used in debugging to see why (if) best species dies
-		bool best_ok;
+		int best_species_num = 0; // Used in debugging to see why (if) best species dies
+		bool best_ok = false;
 
 		// We can try to keep the number of species constant at this number
 		int num_species_target = 4;
@@ -494,6 +494,7 @@ namespace NEAT
 
 		}
 		*/
+		std::cout << "Species in population: " << species.size() << std::endl;
 
 		// Stick the Species pointers into a new Species list for sorting
 		for (curspecies = species.begin(); curspecies != species.end(); ++curspecies)
@@ -586,7 +587,7 @@ namespace NEAT
 			// an average we can use to assign offspring.
 			if (final_expected < total_organisms)
 			{
-				//      cout<<"Population died!"<<endl;
+				std::cout << "Population died!" << std::endl;
 				// cin>>pause;
 				for (curspecies = species.begin(); curspecies != species.end(); ++curspecies)
 				{
@@ -685,8 +686,7 @@ namespace NEAT
 
 				// cout<<"Considering Species "<<(*curspecies)->id<<": age "<<(((*curspecies)->age))<<" expected offspring "<<(((*curspecies)->expected_offspring))<<endl;
 
-				if ((((*curspecies)->age) > 5) &&
-					(((*curspecies)->expected_offspring) > 2))
+				if ((((*curspecies)->age) > 5) && (((*curspecies)->expected_offspring) > 2))
 				{
 					// cout<<"STEALING!"<<endl;
 
@@ -706,11 +706,11 @@ namespace NEAT
 
 				curspecies--;
 
-				// if (stolen_babies>0)
-				// cout<<"stolen babies so far: "<<stolen_babies<<endl;
+				if (stolen_babies > 0)
+					std::cout << "stolen babies so far: " << stolen_babies << std::endl;
 			}
 
-			// cout<<"STOLEN BABIES: "<<stolen_babies<<endl;
+			std::cout << "STOLEN BABIES: " << stolen_babies << std::endl;
 
 			// Mark the best champions of the top species to be the super champs
 			// who will take on the extra offspring for cloning or mutant cloning
@@ -731,8 +731,8 @@ namespace NEAT
 				(*(((*curspecies)->organisms).begin()))->super_champ_offspring = one_fifth_stolen;
 				(*curspecies)->expected_offspring += one_fifth_stolen;
 				stolen_babies -= one_fifth_stolen;
-				// cout<<"Gave "<<one_fifth_stolen<<" babies to Species "<<(*curspecies)->id<<endl;
-				//       cout<<"The best superchamp is "<<(*(((*curspecies)->organisms).begin()))->gnome->genome_id<<endl;
+				std::cout << "Gave " << one_fifth_stolen << " babies to Species " << (*curspecies)->id << std::endl;
+				std::cout << "The best superchamp is " << (*(((*curspecies)->organisms).begin()))->gnome->genome_id << std::endl;
 
 				// Print this champ to file "champ" for observation if desired
 				// IMPORTANT:  This causes generational file output
@@ -752,7 +752,7 @@ namespace NEAT
 					(*(((*curspecies)->organisms).begin()))->super_champ_offspring = one_fifth_stolen;
 					(*curspecies)->expected_offspring += one_fifth_stolen;
 					stolen_babies -= one_fifth_stolen;
-					// cout<<"Gave "<<one_fifth_stolen<<" babies to Species "<<(*curspecies)->id<<endl;
+					std::cout << "Gave " << one_fifth_stolen << " babies to Species " << (*curspecies)->id << std::endl;
 					curspecies++;
 				}
 			}
@@ -768,7 +768,7 @@ namespace NEAT
 					(*curspecies)->expected_offspring += one_tenth_stolen;
 					stolen_babies -= one_tenth_stolen;
 
-					// cout<<"Gave "<<one_tenth_stolen<<" babies to Species "<<(*curspecies)->id<<endl;
+					std::cout << "Gave " << one_tenth_stolen << " babies to Species " << (*curspecies)->id << std::endl;
 					curspecies++;
 				}
 
@@ -787,14 +787,14 @@ namespace NEAT
 						(*(((*curspecies)->organisms).begin()))->super_champ_offspring = 3;
 						(*curspecies)->expected_offspring += 3;
 						stolen_babies -= 3;
-						// cout<<"Gave 3 babies to Species "<<(*curspecies)->id<<endl;
+						std::cout << "Gave 3 babies to Species " << (*curspecies)->id << std::endl;
 					}
 					else
 					{
 						// cout<<"3 or less babies available"<<endl;
 						(*(((*curspecies)->organisms).begin()))->super_champ_offspring = stolen_babies;
 						(*curspecies)->expected_offspring += stolen_babies;
-						// cout<<"Gave "<<stolen_babies<<" babies to Species "<<(*curspecies)->id<<endl;
+						std::cout << "Gave " << stolen_babies << " babies to Species " << (*curspecies)->id << std::endl;
 						stolen_babies = 0;
 					}
 
@@ -811,7 +811,7 @@ namespace NEAT
 			if (stolen_babies > 0)
 			{
 
-				// cout<<"Not all given back, giving to best Species"<<endl;
+				std::cout << "Not all given back, giving to best Species" << std::endl;
 
 				curspecies = sorted_species.begin();
 				(*(((*curspecies)->organisms).begin()))->super_champ_offspring += stolen_babies;
@@ -887,7 +887,7 @@ namespace NEAT
 				last_id = (*curspecies)->id;
 		}
 
-		// cout<<"Reproduction Complete"<<endl;
+		std::cout << "Reproduction Complete" << std::endl;
 
 		// Destroy and remove the old generation from the organisms and species
 		curorg = organisms.begin();
@@ -897,7 +897,7 @@ namespace NEAT
 			// Remove the organism from its Species
 			((*curorg)->species)->remove_org(*curorg);
 
-			// std::cout<<"deleting org # "<<(*curorg)->gnome->genome_id<<std::endl;
+			// std::cout << "Removing org # " << (*curorg)->gnome->genome_id << std::endl;
 
 			// Delete the organism from memory
 			delete (*curorg);
@@ -976,11 +976,11 @@ namespace NEAT
 		}
 		if (!best_ok)
 		{
-			// cout<<"ERROR: THE BEST SPECIES DIED!"<<endl;
+			std::cout << "ERROR: THE BEST SPECIES DIED!" << std::endl;
 		}
 		else
 		{
-			// cout<<"The best survived: "<<best_species_num<<endl;
+			std::cout << "The best survived: " << best_species_num << std::endl;
 		}
 
 		// DEBUG: Checking the top organism's duplicate in the next gen
@@ -989,13 +989,13 @@ namespace NEAT
 		{
 			if ((*curorg)->pop_champ_child)
 			{
-				// cout<<"At end of reproduction cycle, the child of the pop champ is: "<<(*curorg)->gnome<<endl;
+				std::cout << "At end of reproduction cycle, the child of the pop champ is: " << (*curorg)->gnome << std::endl;
 			}
 		}
 
-		// cout<<"babies_stolen at end: "<<babies_stolen<<endl;
+		std::cout << "stolen_babies at end: " << stolen_babies << std::endl;
 
-		// cout<<"Epoch complete"<<endl;
+		std::cout << "Epoch complete" << std::endl;
 
 		return true;
 	}

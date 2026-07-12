@@ -10,6 +10,7 @@
 
 #include "Neat.h"
 #include "Simulation.h"
+#include "ExperimentXOR.h"
 
 int main(int argc, char *argv[])
 {
@@ -17,8 +18,9 @@ int main(int argc, char *argv[])
   int screenHeight = 450;
   int savedX = -1;
   int savedY = -1;
+  const int generationsToRun = 100;
 
-  std::string configPath = "window.state";
+  const std::string configPath = "window.state";
   if (FileExists(configPath.c_str()))
   {
     std::cout << "State file found in current directory." << std::endl;
@@ -75,15 +77,19 @@ int main(int argc, char *argv[])
 
   try
   {
-
     Painter::Painter painter{};
 
     IOControl::KeyInput keyInput{};
 
     Neat::Neat neat{};
-    bool loaded = neat.loadNeatParams("assets/test.ne", true);
+    neat.initialize();
 
-    Neat::Simulation simulation{};
+    bool loaded = neat.loadNeatParams("assets/p2test.ne", true);
+
+    Neat::ExperimentXOR exor{neat};
+
+    Neat::Simulation simulation{exor};
+    simulation.initialize(neat, generationsToRun);
 
     bool simulationRun{false};
 
@@ -101,6 +107,16 @@ int main(int argc, char *argv[])
         simulation.reset();
       }
 
+      if (keyInput.keyI.isTapped())
+      {
+        exor.initialize(neat, generationsToRun);
+      }
+
+      if (keyInput.keyO.isTapped())
+      {
+        simulation.showReport(neat);
+      }
+
       // ===============================================================
       // --- Simulation ---
       // ===============================================================
@@ -115,7 +131,6 @@ int main(int argc, char *argv[])
 
       if (keyInput.keyS.isTapped() && !simulationRun)
       {
-        std::cout << "A single step" << std::endl;
         simulation.step(neat);
       }
       else if (simulationRun)

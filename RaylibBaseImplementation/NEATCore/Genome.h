@@ -46,9 +46,9 @@ namespace Neat
     public:
         int genome_id;
 
-        std::vector<std::shared_ptr<Trait>> traits; // parameter conglomerations
-        std::vector<std::shared_ptr<NNode>> nodes;  // List of NNodes for the Network
-        std::vector<std::shared_ptr<Gene>> genes;   // List of innovation-tracking genes
+        std::vector<std::shared_ptr<Trait>> traits;  // parameter conglomerations
+        std::vector<std::shared_ptr<NNode>> nodes{}; // List of NNodes for the Network
+        std::vector<std::shared_ptr<Gene>> genes;    // List of innovation-tracking genes
 
         // Allows Genome to be matched with its Network. Constructed in genesis()
         std::shared_ptr<Network> phenotype;
@@ -93,6 +93,15 @@ namespace Neat
         static std::shared_ptr<Genome> makeFromTypes(const Neat &neat,
                                                      int num_in, int num_out,
                                                      int num_hidden, int type);
+
+        // Special constructor which spawns off an input file
+        // This constructor assumes that some routine has already read in GENOMESTART
+        static std::shared_ptr<Genome> makeFromFile(const Neat &neat,
+                                                    int id, std::ifstream &iFile);
+
+        // ================================================
+        // Methods
+        // ================================================
 
         int get_last_node_id();          // Return id of final NNode in Genome
         double get_last_gene_innovnum(); // Return last innovation number in Genome

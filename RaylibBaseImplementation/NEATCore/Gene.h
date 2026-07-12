@@ -58,6 +58,16 @@ namespace Neat
         // Copy Constructor
         static std::shared_ptr<Gene> makeCopy(const Neat &neat, const Gene &gene);
 
+        // Construct a gene from a file spec given traits and nodes
+        static std::shared_ptr<Gene> makeFromLine(const Neat &neat,
+                                                  const std::string argline,
+                                                  std::vector<std::shared_ptr<Trait>> &traits,
+                                                  std::vector<std::shared_ptr<NNode>> &nodes);
+
+        // ================================================
+        // Factories
+        // ================================================
+
         void toFile(std::ofstream &outFile);
     };
 
