@@ -14,6 +14,8 @@ namespace Neat
 
     Neat::~Neat()
     {
+        std::cout << "Closing debug log file..." << std::endl;
+        close_log();
     }
 
     /// @brief To test use: getUnit(filestring, delimiters);
@@ -246,11 +248,14 @@ namespace Neat
         {
             do
             {
-                v1 = 2.0 * (randfloat()) - 1.0;
-                v2 = 2.0 * (randfloat()) - 1.0;
+                double randG1 = randfloat();
+                double randG2 = randfloat();
+                // log("(randG1,randG2): ", randG1, randG2);
+                v1 = 2.0 * randG1 - 1.0;
+                v2 = 2.0 * randG2 - 1.0;
                 rsq = v1 * v1 + v2 * v2;
             } while (rsq >= 1.0 || rsq == 0.0);
-            fac = sqrt(-2.0 * log(rsq) / rsq);
+            fac = std::sqrt(-2.0 * std::log(rsq) / rsq);
             gset = v1 * fac;
             iset = 1;
             return v2 * fac;
@@ -431,6 +436,100 @@ namespace Neat
             //   else return -0.01;
 
             return -(weight + delta);
+        }
+    }
+
+    void Neat::open_log(const std::string &filename)
+    {
+        outputEnabled = true;
+        if (log_file.is_open())
+        {
+            log_file.close();
+        }
+        log_file.open(filename);
+        if (!log_file.is_open())
+        {
+            std::cerr << "ERROR: Could not open log file: " << filename << std::endl;
+        }
+    }
+
+    void Neat::log(const std::string &message, bool crlf) const
+    {
+        if (log_file.is_open() && outputEnabled)
+        {
+            log_file << message << std::endl;
+        }
+    }
+
+    void Neat::log(const std::stringstream &ss, bool crlf) const
+    {
+        if (log_file.is_open() && outputEnabled)
+        {
+            log_file << ss.str() << std::endl;
+        }
+    }
+
+    void Neat::log(const char *message, bool crlf) const
+    {
+        if (log_file.is_open() && outputEnabled)
+        {
+            log_file << message << std::endl;
+        }
+    }
+
+    void Neat::log(const char *message, int value, bool crlf) const
+    {
+        if (log_file.is_open() && outputEnabled)
+        {
+            log_file << message << value << std::endl;
+        }
+    }
+
+    void Neat::log(const char *message, int value, int value2, bool crlf) const
+    {
+        if (log_file.is_open() && outputEnabled)
+        {
+            log_file << message << value << ", " << value2 << std::endl;
+        }
+    }
+
+    void Neat::log(const char *message, double value, double value2, bool crlf) const
+    {
+        if (log_file.is_open() && outputEnabled)
+        {
+            log_file << message << value << ", " << value2 << std::endl;
+        }
+    }
+
+    void Neat::log(const char *message, int value, double value2, bool crlf) const
+    {
+        if (log_file.is_open() && outputEnabled)
+        {
+            log_file << message << value << ", " << value2 << std::endl;
+        }
+    }
+
+    void Neat::log(const char *message, double value, int value2, bool crlf) const
+    {
+        if (log_file.is_open() && outputEnabled)
+        {
+            log_file << message << value << ", " << value2 << std::endl;
+        }
+    }
+
+    void Neat::log(const char *message, double value, bool crlf) const
+    {
+        if (log_file.is_open() && outputEnabled)
+        {
+            log_file << message << value << std::endl;
+        }
+    }
+
+    void Neat::close_log()
+    {
+        if (log_file.is_open())
+        {
+            log_file.close();
         }
     }
 

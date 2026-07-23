@@ -18,7 +18,7 @@ namespace Neat
         ~Simulation();
 
         void reset();
-        void initialize(const Neat &neat, int gens);
+        void initialize(Neat &neat, int gens);
         void step(const Neat &neat);
 
         void showReport(const Neat &neat);

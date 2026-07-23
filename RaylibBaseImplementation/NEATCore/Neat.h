@@ -1,6 +1,9 @@
 #pragma once
 
+#include <fstream>
 #include <string>
+#include <iostream>
+#include <sstream>
 
 namespace Neat
 {
@@ -8,6 +11,9 @@ namespace Neat
     class Neat
     {
     private:
+        mutable std::ofstream log_file;
+        mutable bool outputEnabled;
+
         /* data */
     public:
         const int num_trait_params = 8;
@@ -61,6 +67,23 @@ namespace Neat
         bool loadNeatParams(const std::string &file, bool output);
 
         // =================================================================
+        // Logging
+        // =================================================================
+        void open_log(const std::string &filename);
+        void enableLog() { outputEnabled = true; }
+        void disableLog() { outputEnabled = false; }
+        void log(const std::string &message, bool crlf = true) const;
+        void log(const std::stringstream &ss, bool crlf = true) const;
+        void log(const char *message, bool crlf = true) const;
+        void log(const char *message, int value, bool crlf = true) const;
+        void log(const char *message, int value, int value2, bool crlf = true) const;
+        void log(const char *message, double value, double value2, bool crlf = true) const;
+        void log(const char *message, int value, double value2, bool crlf = true) const;
+        void log(const char *message, double value, int value2, bool crlf = true) const;
+        void log(const char *message, double value, bool crlf = true) const;
+        void close_log();
+
+        // =================================================================
         // Randoms
         // =================================================================
         const int random_seed = 13163;
@@ -74,7 +97,9 @@ namespace Neat
 
         inline int randposneg() const
         {
-            if (rand() % 2)
+            int randP = rand() % 2;
+            log("randP: ", randP);
+            if (randP)
                 return 1;
             else
                 return -1;
@@ -82,12 +107,16 @@ namespace Neat
 
         inline int randint(int x, int y) const
         {
-            return rand() % (y - x + 1) + x;
+            int randI = rand() % (y - x + 1) + x;
+            log("randI: ", randI);
+            return randI;
         }
 
         inline double randfloat() const
         {
-            return rand() / (double)RAND_MAX;
+            double randF = (double)rand() / RAND_MAX;
+            log("randF: ", randF);
+            return randF;
         }
 
         // SIGMOID FUNCTION ********************************

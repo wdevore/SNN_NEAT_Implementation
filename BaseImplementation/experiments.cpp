@@ -29,8 +29,10 @@ namespace NEAT
     Genome *start_genome;
     char curword[20];
     int id;
+    const int random_seed = 13163;
 
-    ostringstream *fnamebuf;
+    srand(random_seed);
+
     int gen;
 
     int evals[NEAT::num_runs]; // Hold records for each run
@@ -54,35 +56,32 @@ namespace NEAT
 
     cout << "START XOR TEST" << endl;
 
-    cout << "Reading in the start genome" << endl;
     // Read in the start Genome
     iFile >> curword;
     iFile >> id;
-    cout << "Reading in Genome id " << id << endl;
+    NEAT::log("Read in Genome id ", id);
     start_genome = new Genome(id, iFile);
     iFile.close();
 
     for (expcount = 0; expcount < NEAT::num_runs; expcount++)
     {
       // Spawn the Population
-      cout << "Spawning Population off Genome2" << endl;
+      NEAT::log("Spawning Population off Genome2");
 
+      NEAT::disableLog();
       pop = new Population(start_genome, NEAT::pop_size);
+      NEAT::enableLog();
 
-      cout << "Verifying Spawned Pop" << endl;
+      NEAT::log("Verifying Spawned Pop");
       pop->verify();
 
       for (gen = 1; gen <= gens; gen++)
       {
-        cout << "Epoch " << gen << endl;
+        NEAT::log("=============================================");
+        NEAT::log("=== Epoch Beginning: ", gen);
+        NEAT::log("=============================================");
 
         // This is how to make a custom filename
-        fnamebuf = new ostringstream();
-        (*fnamebuf) << "gen_" << gen << ends; // needs end marker
-
-#ifndef NO_SCREEN_OUT
-        cout << "name of fname: " << fnamebuf->str() << endl;
-#endif
 
         char temp[50];
         sprintf(temp, "gen_%d", gen);
@@ -97,10 +96,9 @@ namespace NEAT
           nodes[expcount] = winnernodes;
           gen = gens;
         }
-
-        // Clear output filename
-        fnamebuf->clear();
-        delete fnamebuf;
+        NEAT::log("=============================================");
+        NEAT::log("=== Epoch Complete: ", gen);
+        NEAT::log("=============================================");
       }
 
       if (expcount < NEAT::num_runs - 1)
@@ -200,17 +198,19 @@ namespace NEAT
       errorsum = (fabs(out[0]) + fabs(1.0 - out[1]) + fabs(1.0 - out[2]) + fabs(out[3]));
       org->fitness = pow((4.0 - errorsum), 2);
       org->error = errorsum;
+      NEAT::log("Evaluate: new fitness: ", org->fitness);
     }
     else
     {
       // The network is flawed (shouldnt happen)
       errorsum = 999.0;
       org->fitness = 0.001;
+      NEAT::log("The network is flawed (shouldn't happen)");
     }
 
 #ifndef NO_SCREEN_OUT
-    cout << "Org " << (org->gnome)->genome_id << "                                     error: " << errorsum << "  [" << out[0] << " " << out[1] << " " << out[2] << " " << out[3] << "]" << endl;
-    cout << "Org " << (org->gnome)->genome_id << "                                     fitness: " << org->fitness << endl;
+    // cout << "Org " << (org->gnome)->genome_id << "                                     error: " << errorsum << "  [" << out[0] << " " << out[1] << " " << out[2] << " " << out[3] << "]" << endl;
+    // cout << "Org " << (org->gnome)->genome_id << "                                     fitness: " << org->fitness << endl;
 #endif
 
     //  if (errorsum<0.05) {
@@ -328,7 +328,7 @@ namespace NEAT
     // Read in the start Genome
     iFile >> curword;
     iFile >> id;
-    cout << "Reading in Genome id " << id << endl;
+    cout << "Read in Genome id " << id << endl;
     start_genome = new Genome(id, iFile);
     iFile.close();
 
@@ -687,7 +687,7 @@ namespace NEAT
     // Read in the start Genome
     iFile >> curword;
     iFile >> id;
-    cout << "Reading in Genome id " << id << endl;
+    cout << "Read in Genome id " << id << endl;
     start_genome = new Genome(id, iFile);
     iFile.close();
 

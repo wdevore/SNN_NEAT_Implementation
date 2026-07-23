@@ -18,6 +18,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 namespace NEAT
 {
@@ -71,6 +74,25 @@ namespace NEAT
 
 	extern int num_runs; // number of times to run experiment
 
+	// =================================================================
+	// Logging
+	// =================================================================
+	extern std::ofstream log_file;
+	extern bool outputEnabled;
+	extern void open_log(const std::string &filename);
+	extern void enableLog();
+	extern void disableLog();
+	extern void log(const std::string &message, bool crlf = true);
+	void log(const std::stringstream &ss, bool crlf = true);
+	void log(const char *message, bool crlf = true);
+	void log(const char *message, int value, bool crlf = true);
+	void log(const char *message, int value, int value2, bool crlf = true);
+	void log(const char *message, double value, double value2, bool crlf = true);
+	void log(const char *message, int value, double value2, bool crlf = true);
+	void log(const char *message, double value, int value2, bool crlf = true);
+	void log(const char *message, double value, bool crlf = true);
+	void close_log();
+
 	// extern MRandomR250 NEATRandGen; // Random number generator; can pass seed value as argument
 
 	// const char *getUnit(const char *string, int index, const char *set);
@@ -80,7 +102,9 @@ namespace NEAT
 	// Inline Random Functions
 	extern inline int randposneg()
 	{
-		if (rand() % 2)
+		int randP = rand() % 2;
+		NEAT::log("randP: ", randP);
+		if (randP)
 			return 1;
 		else
 			return -1;
@@ -88,12 +112,16 @@ namespace NEAT
 
 	extern inline int randint(int x, int y)
 	{
-		return rand() % (y - x + 1) + x;
+		int randI = rand() % (y - x + 1) + x;
+		log("randI: ", randI);
+		return randI;
 	}
 
 	extern inline double randfloat()
 	{
-		return rand() / (double)RAND_MAX;
+		double randF = (double)rand() / RAND_MAX;
+		log("randF: ", randF);
+		return randF;
 	}
 
 	// SIGMOID FUNCTION ********************************

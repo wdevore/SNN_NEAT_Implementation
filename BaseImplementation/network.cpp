@@ -178,6 +178,8 @@ namespace NEAT
 	// Returns true on success;
 	bool Network::activate()
 	{
+		NEAT::log("Network::activate START");
+
 		std::vector<NNode *>::iterator curnode;
 		std::vector<Link *>::iterator curlink;
 		double add_amount;	// For adding to the activesum
@@ -200,16 +202,16 @@ namespace NEAT
 			if (abortcount == 20)
 			{
 				return false;
-				// cout<<"Inputs disconnected from output!"<<endl;
+				NEAT::log("Inputs disconnected from output!");
 			}
-			// std::cout<<"Outputs are off"<<std::endl;
+			NEAT::log("Outputs are off");
 
 			// For each node, compute the sum of its incoming activation
 			for (curnode = all_nodes.begin(); curnode != all_nodes.end(); ++curnode)
 			{
 				// Ignore SENSORS
 
-				// cout<<"On node "<<(*curnode)->node_id<<endl;
+				NEAT::log("On node ", (*curnode)->node_id);
 
 				if (((*curnode)->type) != SENSOR)
 				{
@@ -227,14 +229,16 @@ namespace NEAT
 								(((*curlink)->in_node)->type == SENSOR))
 								(*curnode)->active_flag = true;
 							(*curnode)->activesum += add_amount;
-							// std::cout << "1)Node " << (*curnode)->node_id << " adding " << add_amount << " from node " << ((*curlink)->in_node)->node_id << std::endl;
+							NEAT::log("1) Node (amount, nodeid) ", add_amount, (*curnode)->node_id);
+							NEAT::log("  (activesum,from node) ", (*curnode)->activesum, (*curlink)->in_node->node_id);
 						}
 						else
 						{
 							// Input over a time delayed connection
 							add_amount = ((*curlink)->weight) * (((*curlink)->in_node)->get_active_out_td());
-							std::cout << "2)Node " << (*curnode)->node_id << " adding " << add_amount << " from node " << ((*curlink)->in_node)->node_id << std::endl;
 							(*curnode)->activesum += add_amount;
+							NEAT::log("2) Node (amount, nodeid) ", add_amount, (*curnode)->node_id);
+							NEAT::log("  (activesum,from link) ", (*curnode)->activesum, (*curlink)->in_node->node_id);
 						}
 
 					} // End for over incoming links
@@ -253,6 +257,7 @@ namespace NEAT
 					if ((*curnode)->active_flag)
 					{
 						// cout<<"Activating "<<(*curnode)->node_id<<" with "<<(*curnode)->activesum<<": ";
+						NEAT::log("(Activating , with): ", (*curnode)->node_id, (*curnode)->activesum);
 
 						// Keep a memory of activations for potential time delayed connections
 						(*curnode)->last_activation2 = (*curnode)->last_activation;
@@ -271,7 +276,7 @@ namespace NEAT
 							if ((*curnode)->ftype == SIGMOID)
 								(*curnode)->activation = NEAT::fsigmoid((*curnode)->activesum, 4.924273, 2.4621365); // Sigmoidal activation- see comments under fsigmoid
 						}
-						// std::cout << "node activation: " << (*curnode)->activation << std::endl;
+						NEAT::log("node activation: ", (*curnode)->activation);
 
 						// Increment the activation_count
 						// First activation cannot be from nothing!!
@@ -286,14 +291,14 @@ namespace NEAT
 		if (adaptable)
 		{
 
-			// std::cout << "ADAPTING" << std:endl;
+			NEAT::log("ADAPTING");
 
 			// ADAPTATION:  Adapt weights based on activations
 			for (curnode = all_nodes.begin(); curnode != all_nodes.end(); ++curnode)
 			{
 				// Ignore SENSORS
 
-				// cout<<"On node "<<(*curnode)->node_id<<endl;
+				NEAT::log("Ignore SENSORS: On node ", (*curnode)->node_id);
 
 				if (((*curnode)->type) != SENSOR)
 				{
@@ -332,6 +337,7 @@ namespace NEAT
 			}
 
 		} // end if (adaptable)
+		NEAT::log("Network::activate END");
 
 		return true;
 	}

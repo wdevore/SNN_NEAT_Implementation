@@ -251,19 +251,22 @@ namespace NEAT
 
 	bool Population::clone(Genome *g, int size, float power)
 	{
+		NEAT::log("Population::clone START ");
 		int count;
 		Genome *new_genome;
 		Organism *new_organism;
 
+		NEAT::log("(size, power): ", size, power);
 		new_genome = g->duplicate(1);
 		new_organism = new Organism(0.0, new_genome, 1);
 		organisms.push_back(new_organism);
+		NEAT::log("Added organism to population: ", (int)organisms.size());
 
 		// Create size copies of the Genome
 		// Start with perturbed linkweights
 		for (count = 2; count <= size; count++)
 		{
-			// cout<<"CREATING ORGANISM "<<count<<endl;
+			NEAT::log("CREATING ORGANISM count: ", count);
 			new_genome = g->duplicate(count);
 			if (power > 0)
 				new_genome->mutate_link_weights(power, 1.0, GAUSSIAN);
@@ -271,20 +274,29 @@ namespace NEAT
 			new_genome->randomize_traits();
 			new_organism = new Organism(0.0, new_genome, 1);
 			organisms.push_back(new_organism);
+			NEAT::log("Rand Trait=>Added organism to population: ", (int)organisms.size());
 		}
 
-		// Keep a record of the innovation and node number we are on
-		cur_node_id = new_genome->get_last_node_id();
-		cur_innov_num = new_genome->get_last_gene_innovnum();
+		if (!organisms.empty())
+		{
+
+			// Keep a record of the innovation and node number we are on
+			cur_node_id = new_genome->get_last_node_id();
+			cur_innov_num = new_genome->get_last_gene_innovnum();
+		}
 
 		// Separate the new Population into species
 		speciate();
+
+		NEAT::log("Population::clone END ");
 
 		return true;
 	}
 
 	bool Population::spawn(Genome *g, int size)
 	{
+		NEAT::log("Population::spawn START ");
+
 		int count;
 		Genome *new_genome;
 		Organism *new_organism;
@@ -293,7 +305,7 @@ namespace NEAT
 		// Start with perturbed linkweights
 		for (count = 1; count <= size; count++)
 		{
-			// cout<<"CREATING ORGANISM "<<count<<endl;
+			NEAT::log("CREATING ORGANISM count: ", count);
 
 			new_genome = g->duplicate(count);
 			// new_genome->mutate_link_weights(1.0,1.0,GAUSSIAN);
@@ -310,11 +322,15 @@ namespace NEAT
 		// Separate the new Population into species
 		speciate();
 
+		NEAT::log("Population::spawn END ");
+
 		return true;
 	}
 
 	bool Population::speciate()
 	{
+		NEAT::log("Population::speciate START OrgSize: ", (int)organisms.size());
+
 		std::vector<Organism *>::iterator curorg;	 // For stepping through Population
 		std::vector<Species *>::iterator curspecies; // Steps through species
 		Organism *comporg = 0;						 // Organism for comparison
@@ -334,7 +350,8 @@ namespace NEAT
 				newspecies = new Species(++counter);
 				species.push_back(newspecies);
 				newspecies->add_Organism(*curorg); // Add the current organism
-				(*curorg)->species = newspecies;   // Point organism to its species
+				NEAT::log("Adding organism to Species: ", (int)species.size());
+				(*curorg)->species = newspecies; // Point organism to its species
 			}
 			else
 			{
@@ -375,6 +392,8 @@ namespace NEAT
 		} // end for
 
 		last_species = counter; // Keep track of highest species
+
+		NEAT::log("Population::speciate END ");
 
 		return true;
 	}
@@ -430,6 +449,7 @@ namespace NEAT
 
 	bool Population::epoch(int generation)
 	{
+		NEAT::log("########## Population::epoch START ############");
 
 		std::vector<Species *>::iterator curspecies;
 		std::vector<Species *>::iterator deadspecies; // For removing empty Species
@@ -442,9 +462,9 @@ namespace NEAT
 
 		double total = 0.0; // Used to compute average fitness over all Organisms
 
-		double overall_average; // The average modified fitness among ALL organisms
+		double overall_average = 0.0; // The average modified fitness among ALL organisms
 
-		int orgcount;
+		int orgcount = 0;
 
 		// The fractional parts of expected offspring that can be
 		// Used only when they accumulate above 1 for the purposes of counting
@@ -494,7 +514,7 @@ namespace NEAT
 
 		}
 		*/
-		std::cout << "Species in population: " << species.size() << std::endl;
+		NEAT::log("Species in population: ", (int)(species.size()));
 
 		// Stick the Species pointers into a new Species list for sorting
 		for (curspecies = species.begin(); curspecies != species.end(); ++curspecies)
@@ -515,11 +535,13 @@ namespace NEAT
 		while ((curspecies != sorted_species.begin()) &&
 			   ((*curspecies)->age < 20))
 			--curspecies;
+
+		NEAT::log("Found curspecies: ", (*curspecies)->id);
+
 		if ((generation % 30) == 0)
 			(*curspecies)->obliterate = true;
 
-		std::cout << "Number of Species: " << num_species << std::endl;
-		std::cout << "compat_thresh: " << compat_threshold << std::endl;
+		NEAT::log("Number of Species: ", num_species);
 
 		// Use Species' ages to modify the objective fitness of organisms
 		//  in other words, make it more fair for younger species
@@ -539,9 +561,13 @@ namespace NEAT
 		for (curorg = organisms.begin(); curorg != organisms.end(); ++curorg)
 		{
 			total += (*curorg)->fitness;
+			NEAT::log("total ", total);
+			NEAT::log("org fitness ", (*curorg)->fitness);
 		}
 		overall_average = total / total_organisms;
-		std::cout << "Generation " << generation << ": " << "overall_average = " << overall_average << std::endl;
+		NEAT::log("total ", total);
+		NEAT::log("total_organisms ", total_organisms);
+		NEAT::log("(Generation, overall_average): ", generation, overall_average);
 
 		// Now compute expected number of offspring for each individual organism
 		for (curorg = organisms.begin(); curorg != organisms.end(); ++curorg)
@@ -556,6 +582,8 @@ namespace NEAT
 		for (curspecies = species.begin(); curspecies != species.end(); ++curspecies)
 		{
 			skim = (*curspecies)->count_offspring(skim);
+			NEAT::log("########### Population::epoch::Species::count_offspring ############, skim:", skim);
+
 			total_expected += (*curspecies)->expected_offspring;
 		}
 
@@ -576,7 +604,11 @@ namespace NEAT
 				final_expected += (*curspecies)->expected_offspring;
 			}
 			// Give the extra offspring to the best species
-			++(best_species->expected_offspring);
+			if (best_species)
+				++(best_species->expected_offspring);
+			else
+				NEAT::log("WARNING: Found no Best Species");
+
 			final_expected++;
 
 			// If we still arent at total, there is a problem
@@ -587,7 +619,7 @@ namespace NEAT
 			// an average we can use to assign offspring.
 			if (final_expected < total_organisms)
 			{
-				std::cout << "Population died!" << std::endl;
+				NEAT::log("######## EPOCH Population died! #########");
 				// cin>>pause;
 				for (curspecies = species.begin(); curspecies != species.end(); ++curspecies)
 				{
@@ -608,7 +640,9 @@ namespace NEAT
 		{
 
 			// Print out for Debugging/viewing what's going on
-			std::cout << "orig fitness of Species" << (*curspecies)->id << "(Size " << (*curspecies)->organisms.size() << "): " << (*((*curspecies)->organisms).begin())->orig_fitness << " last improved " << ((*curspecies)->age - (*curspecies)->age_of_last_improvement) << std::endl;
+			NEAT::log("(Species, Organisms): ", (*curspecies)->id, (int)(*curspecies)->organisms.size());
+			NEAT::log("(Fitness, last improved): ", (*((*curspecies)->organisms).begin())->orig_fitness, ((*curspecies)->age - (*curspecies)->age_of_last_improvement));
+			NEAT::log("(Age, Avg Fitness): ", (*curspecies)->age, (*curspecies)->ave_fitness);
 		}
 
 		// Check for Population-level stagnation
@@ -619,12 +653,13 @@ namespace NEAT
 		{
 			highest_fitness = ((*(((*curspecies)->organisms).begin()))->orig_fitness);
 			highest_last_changed = 0;
-			std::cout << "NEW POPULATION RECORD FITNESS: " << highest_fitness << std::endl;
+			NEAT::log("NEW POPULATION RECORD FITNESS: ", highest_fitness);
 		}
 		else
 		{
 			++highest_last_changed;
-			std::cout << highest_last_changed << " generations since last population fitness record: " << highest_fitness << std::endl;
+			// std::cout << highest_last_changed << " generations since last population fitness record: " << highest_fitness << std::endl;
+			NEAT::log("generations since last population fitness record (highest_last_changed, highest_fitness): ", highest_last_changed, highest_fitness);
 		}
 
 		// Check for stagnation- if there is stagnation, perform delta-coding
@@ -683,12 +718,12 @@ namespace NEAT
 			while ((stolen_babies < NUM_STOLEN) &&
 				   (curspecies != sorted_species.begin()))
 			{
-
-				// cout<<"Considering Species "<<(*curspecies)->id<<": age "<<(((*curspecies)->age))<<" expected offspring "<<(((*curspecies)->expected_offspring))<<endl;
+				NEAT::log("Considering Species (id, age): ", (*curspecies)->id, (*curspecies)->age);
+				NEAT::log("Expected offspring ", (*curspecies)->expected_offspring);
 
 				if ((((*curspecies)->age) > 5) && (((*curspecies)->expected_offspring) > 2))
 				{
-					// cout<<"STEALING!"<<endl;
+					NEAT::log("STEALING!");
 
 					// This species has enough to finish off the stolen pool
 					if (((*curspecies)->expected_offspring - 1) >= (NUM_STOLEN - stolen_babies))
@@ -707,10 +742,10 @@ namespace NEAT
 				curspecies--;
 
 				if (stolen_babies > 0)
-					std::cout << "stolen babies so far: " << stolen_babies << std::endl;
+					NEAT::log("stolen babies so far: ", stolen_babies);
 			}
 
-			std::cout << "STOLEN BABIES: " << stolen_babies << std::endl;
+			NEAT::log("STOLEN BABIES: ", stolen_babies);
 
 			// Mark the best champions of the top species to be the super champs
 			// who will take on the extra offspring for cloning or mutant cloning
@@ -731,8 +766,8 @@ namespace NEAT
 				(*(((*curspecies)->organisms).begin()))->super_champ_offspring = one_fifth_stolen;
 				(*curspecies)->expected_offspring += one_fifth_stolen;
 				stolen_babies -= one_fifth_stolen;
-				std::cout << "Gave " << one_fifth_stolen << " babies to Species " << (*curspecies)->id << std::endl;
-				std::cout << "The best superchamp is " << (*(((*curspecies)->organisms).begin()))->gnome->genome_id << std::endl;
+				NEAT::log("Gave: (one_fifth_stolen, id): ", one_fifth_stolen, (*curspecies)->id);
+				NEAT::log("The best superchamp is: ", (*(((*curspecies)->organisms).begin()))->gnome->genome_id);
 
 				// Print this champ to file "champ" for observation if desired
 				// IMPORTANT:  This causes generational file output
@@ -752,7 +787,7 @@ namespace NEAT
 					(*(((*curspecies)->organisms).begin()))->super_champ_offspring = one_fifth_stolen;
 					(*curspecies)->expected_offspring += one_fifth_stolen;
 					stolen_babies -= one_fifth_stolen;
-					std::cout << "Gave " << one_fifth_stolen << " babies to Species " << (*curspecies)->id << std::endl;
+					NEAT::log("Gave: (stolen_babies, id): ", stolen_babies, (*curspecies)->id);
 					curspecies++;
 				}
 			}
@@ -768,7 +803,8 @@ namespace NEAT
 					(*curspecies)->expected_offspring += one_tenth_stolen;
 					stolen_babies -= one_tenth_stolen;
 
-					std::cout << "Gave " << one_tenth_stolen << " babies to Species " << (*curspecies)->id << std::endl;
+					NEAT::log("Gave: (one_tenth_stolen, id): ", one_tenth_stolen, (*curspecies)->id);
+
 					curspecies++;
 				}
 
@@ -787,14 +823,14 @@ namespace NEAT
 						(*(((*curspecies)->organisms).begin()))->super_champ_offspring = 3;
 						(*curspecies)->expected_offspring += 3;
 						stolen_babies -= 3;
-						std::cout << "Gave 3 babies to Species " << (*curspecies)->id << std::endl;
+						NEAT::log("Gave 3 babies to Species: ", (*curspecies)->id);
 					}
 					else
 					{
 						// cout<<"3 or less babies available"<<endl;
 						(*(((*curspecies)->organisms).begin()))->super_champ_offspring = stolen_babies;
 						(*curspecies)->expected_offspring += stolen_babies;
-						std::cout << "Gave " << stolen_babies << " babies to Species " << (*curspecies)->id << std::endl;
+						NEAT::log("Gave: (babies to Species, id): ", stolen_babies, (*curspecies)->id);
 						stolen_babies = 0;
 					}
 
@@ -811,7 +847,7 @@ namespace NEAT
 			if (stolen_babies > 0)
 			{
 
-				std::cout << "Not all given back, giving to best Species" << std::endl;
+				NEAT::log("Not all given back, giving to best Species");
 
 				curspecies = sorted_species.begin();
 				(*(((*curspecies)->organisms).begin()))->super_champ_offspring += stolen_babies;
@@ -825,9 +861,12 @@ namespace NEAT
 		curorg = organisms.begin();
 		while (curorg != organisms.end())
 		{
+			NEAT::log("curorg eliminate: ", (*curorg)->eliminate, true);
+
 			if (((*curorg)->eliminate))
 			{
 				// Remove the organism from its Species
+				NEAT::log("Remove organism from its Species: ", (*curorg)->species->id, true);
 				((*curorg)->species)->remove_org(*curorg);
 
 				// Delete the organism from memory
@@ -848,7 +887,7 @@ namespace NEAT
 			}
 		}
 
-		// cout<<"Reproducing"<<endl;
+		NEAT::log("Performing reproduction");
 
 		// Perform reproduction.  Reproduction is done on a per-Species
 		// basis.  (So this could be paralellized potentially.)
@@ -887,7 +926,7 @@ namespace NEAT
 				last_id = (*curspecies)->id;
 		}
 
-		std::cout << "Reproduction Complete" << std::endl;
+		NEAT::log("Reproduction Complete");
 
 		// Destroy and remove the old generation from the organisms and species
 		curorg = organisms.begin();
@@ -975,13 +1014,9 @@ namespace NEAT
 			++curspecies;
 		}
 		if (!best_ok)
-		{
-			std::cout << "ERROR: THE BEST SPECIES DIED!" << std::endl;
-		}
+			NEAT::log("ERROR: THE BEST SPECIES DIED!");
 		else
-		{
-			std::cout << "The best survived: " << best_species_num << std::endl;
-		}
+			NEAT::log("The best survived: ", best_species_num);
 
 		// DEBUG: Checking the top organism's duplicate in the next gen
 		// This prints the champ's child to the screen
@@ -989,13 +1024,14 @@ namespace NEAT
 		{
 			if ((*curorg)->pop_champ_child)
 			{
-				std::cout << "At end of reproduction cycle, the child of the pop champ is: " << (*curorg)->gnome << std::endl;
+				NEAT::log("At end of reproduction cycle, the child of the pop champ is: ", (*curorg)->gnome->genome_id);
 			}
 		}
 
-		std::cout << "stolen_babies at end: " << stolen_babies << std::endl;
+		if (stolen_babies > 0)
+			NEAT::log("stolen_babies at end: ", stolen_babies);
 
-		std::cout << "Epoch complete" << std::endl;
+		NEAT::log("########## Population::epoch END ############");
 
 		return true;
 	}

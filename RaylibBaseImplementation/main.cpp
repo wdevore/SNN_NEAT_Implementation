@@ -85,6 +85,9 @@ int main(int argc, char *argv[])
     neat.initialize();
 
     bool loaded = neat.loadNeatParams("assets/p2test.ne", true);
+    // neat.open_log("/home/iposthuman/Documents/raylib.log");
+    neat.open_log("/media/RAMDisk/raylib.log");
+    neat.log("Raylib log");
 
     Neat::ExperimentXOR exor{neat};
 

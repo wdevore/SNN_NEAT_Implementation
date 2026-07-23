@@ -21,7 +21,7 @@ namespace Neat
         Experiment(const Neat &neat);
         ~Experiment();
 
-        virtual void initialize(const Neat &neat, int gens) = 0;
+        virtual void initialize(Neat &neat, int gens) = 0;
 
         virtual bool runStep(const Neat &neat, int gen) = 0;
         // Run through a series of generations and stops at the first winner.

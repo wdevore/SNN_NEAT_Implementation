@@ -612,6 +612,8 @@ namespace Neat
 
     std::shared_ptr<Network> Genome::genesis(const Neat &neat, int id)
     {
+        neat.log("########### Genome::genesis ############ ID: ", id);
+
         double maxweight = 0.0; // Compute the maximum weight for adaptation purposes
 
         // Inputs and outputs will be collected here for the network
@@ -684,6 +686,8 @@ namespace Neat
 
     std::shared_ptr<Genome> Genome::duplicate(const Neat &neat, int new_id)
     {
+        neat.log("########### Genome::duplicate START ############ ID: ", new_id);
+
         // Collections for the new Genome
         std::vector<std::shared_ptr<Trait>> traits_dup;
         std::vector<std::shared_ptr<NNode>> nodes_dup;
@@ -749,6 +753,7 @@ namespace Neat
 
         // Finally, return the genome
         auto newgenome = Genome::makeFromSpecs(new_id, traits_dup, nodes_dup, genes_dup);
+        neat.log("########### Genome::duplicate END ############ ID: ", new_id);
 
         return newgenome;
     }
@@ -824,8 +829,9 @@ namespace Neat
 
     void Genome::mutate_random_trait(const Neat &neat)
     {
+        neat.log("Genome::mutate_random_trait: size= ", (int)traits.size());
         // Choose a random traitnum
-        int traitnum = neat.randint(0, (traits.size()) - 1);
+        int traitnum = neat.randint(0, traits.size() - 1);
 
         // Retrieve the trait and mutate it. Trait to be mutated
         auto thetrait = traits.begin();
@@ -839,7 +845,7 @@ namespace Neat
         for (int loop = 1; loop <= times; loop++)
         {
             // Choose a random traitnum for attachment
-            int traitnum = neat.randint(0, (traits.size()) - 1);
+            int traitnum = neat.randint(0, traits.size() - 1);
             auto &thetrait = traits.at(traitnum);
 
             // Choose a random gene to mutate
@@ -858,15 +864,16 @@ namespace Neat
     {
         for (int loop = 1; loop <= times; loop++)
         {
+            // Choose a random trait number
+            int traitnum = neat.randint(0, traits.size() - 1);
+
             // Choose a random node number
             int nodenum = neat.randint(0, nodes.size() - 1);
-            auto &thenode = nodes.at(nodenum);
 
+            auto &thenode = nodes.at(nodenum);
             // Do not mutate frozen nodes
             if (!thenode->frozen)
             {
-                // Choose a random trait number
-                int traitnum = neat.randint(0, (traits.size()) - 1);
                 auto &thetrait = traits.at(traitnum);
 
                 // set the trait to point to the new trait
@@ -1284,16 +1291,13 @@ namespace Neat
         trycount = 0;
 
         // Decide whether to make this recurrent
-        if (neat.randfloat() < neat.recur_only_prob)
-            do_recur = true;
-        else
-            do_recur = false;
+        do_recur = neat.randfloat() < neat.recur_only_prob;
 
         // Find the first non-sensor so that the to-node won't look at sensors as
         // possible destinations
         first_nonsensor = 0;
         thenode1 = nodes.begin();
-        while (((*thenode1)->get_type()) == SENSOR)
+        while ((*thenode1)->get_type() == SENSOR)
         {
             first_nonsensor++;
             ++thenode1;
@@ -1325,6 +1329,7 @@ namespace Neat
                     nodenum2 = neat.randint(first_nonsensor, nodes.size() - 1);
                 }
 
+                // TODO CONVERT to find algorithm
                 // Find the first node
                 thenode1 = nodes.begin();
                 for (nodecount = 0; nodecount < nodenum1; nodecount++)
@@ -1395,7 +1400,7 @@ namespace Neat
                 for (nodecount = 0; nodecount < nodenum1; nodecount++)
                     ++thenode1;
 
-                // cout<<"RETRIEVED NODE# "<<(*thenode1)->node_id<<std::endl;
+                neat.log("RETRIEVED NODE# ", (*thenode1)->node_id);
 
                 // Find the second node
                 thenode2 = nodes.begin();
@@ -1467,9 +1472,9 @@ namespace Neat
                 {
                     // If the phenotype does not exist, exit on false,print error
                     // Note: This should never happen- if it does there is a bug
-                    if (phenotype)
+                    if (!phenotype)
                     {
-                        // cout<<"ERROR: Attempt to add link to genome with no phenotype"<<std::endl;
+                        neat.log("ERROR: Attempt to add link to genome with no phenotype");
                         return false;
                     }
 
@@ -1499,6 +1504,7 @@ namespace Neat
 
                     // Create the new gene
                     newgene = Gene::makeFromTrait(neat, thetrait[traitnum], newweight, nodep1, nodep2, recurflag, curinnov, newweight);
+                    neat.log("Novel NEW GENE: ", newgene->link->in_node->node_id);
 
                     // Add the innovation
                     auto theInnov = Innovation::makeAsNewLinkType(nodep1->node_id, nodep2->node_id, curinnov, newweight, traitnum);
@@ -1518,6 +1524,7 @@ namespace Neat
 
                     // Create new gene
                     newgene = Gene::makeFromTrait(neat, thetrait[(*theinnov)->new_traitnum], (*theinnov)->new_weight, nodep1, nodep2, recurflag, (*theinnov)->innovation_num1, 0);
+                    neat.log("Novel NEW GENE2: ", newgene->link->in_node->node_id);
 
                     done = true;
                 }

@@ -14,7 +14,7 @@ namespace Neat
         std::cout << "Resetting simulation..." << std::endl;
     }
 
-    void Simulation::initialize(const Neat &neat, int gens)
+    void Simulation::initialize(Neat &neat, int gens)
     {
         experiment.initialize(neat, gens);
     }

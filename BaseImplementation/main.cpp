@@ -87,6 +87,9 @@ int main(int argc, char *argv[])
     return -1;
   }
 
+  NEAT::open_log("/media/RAMDisk/baselib.log");
+  NEAT::log("Baselib log");
+
   /*
   //Test a genome file on pole balancing
   Genome *g;
@@ -132,7 +135,7 @@ int main(int argc, char *argv[])
     p = NEAT::pole2_test(100, 0);
     break;
   case 4:
-    p = NEAT::xor_test(100);
+    p = NEAT::xor_test(1); // 100
     break;
   default:
     cout << "Not an available option." << endl;
@@ -141,6 +144,8 @@ int main(int argc, char *argv[])
   // p = pole1_test(100); // 1-pole balancing
   // p = pole2_test(100,1); // 2-pole balancing, velocity
   // p = pole2_test(100,0); // 2-pole balancing, no velocity (non-markov)
+
+  NEAT::close_log();
 
   if (p)
     delete p;

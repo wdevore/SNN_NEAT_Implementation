@@ -96,9 +96,7 @@ namespace Neat
         newNode->gen_node_label = nnode.gen_node_label;
 
         if (t)
-        {
             newNode->trait_id = t->trait_id;
-        }
         else
             newNode->trait_id = 1;
 

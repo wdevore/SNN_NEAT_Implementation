@@ -93,15 +93,21 @@ namespace Neat
 
     void Trait::mutate(const Neat &neat)
     {
-        for (auto &parm : params)
+        for (int count = 0; count < neat.num_trait_params; count++)
+        // for (auto &parm : params)
         {
             if (neat.randfloat() > neat.trait_param_mut_prob)
             {
-                parm += (neat.randposneg() * neat.randfloat()) * neat.trait_mutation_power;
-                if (parm < 0)
-                    parm = 0;
-                if (parm > 1.0)
-                    parm = 1.0;
+                params[count] += (neat.randposneg() * neat.randfloat()) * neat.trait_mutation_power;
+                if (params[count] < 0)
+                    params[count] = 0;
+                if (params[count] > 1.0)
+                    params[count] = 1.0;
+                // parm += (neat.randposneg() * neat.randfloat()) * neat.trait_mutation_power;
+                // if (parm < 0)
+                //     parm = 0;
+                // if (parm > 1.0)
+                //     parm = 1.0;
             }
         }
     }

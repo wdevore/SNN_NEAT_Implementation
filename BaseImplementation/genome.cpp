@@ -657,6 +657,8 @@ namespace NEAT
 
 	Network *Genome::genesis(int id)
 	{
+		NEAT::log("########### Genome::genesis ############ ID: ", id);
+
 		std::vector<NNode *>::iterator curnode;
 		std::vector<Gene *>::iterator curgene;
 		NNode *newnode;
@@ -969,6 +971,8 @@ namespace NEAT
 
 	Genome *Genome::duplicate(int new_id)
 	{
+		NEAT::log("########### Genome::duplicate START ############ ID: ", new_id);
+
 		// Collections for the new Genome
 		std::vector<Trait *> traits_dup;
 		std::vector<NNode *> nodes_dup;
@@ -1048,11 +1052,15 @@ namespace NEAT
 		// Finally, return the genome
 		newgenome = new Genome(new_id, traits_dup, nodes_dup, genes_dup);
 
+		NEAT::log("########### Genome::duplicate END ############ ID: ", new_id);
+
 		return newgenome;
 	}
 
 	void Genome::mutate_random_trait()
 	{
+		NEAT::log("Genome::mutate_random_trait: size= ", (int)traits.size());
+
 		std::vector<Trait *>::iterator thetrait; // Trait to be mutated
 		int traitnum;
 
@@ -1755,7 +1763,7 @@ namespace NEAT
 				for (nodecount = 0; nodecount < nodenum1; nodecount++)
 					++thenode1;
 
-				// cout<<"RETRIEVED NODE# "<<(*thenode1)->node_id<<std::endl;
+				NEAT::log("RETRIEVED NODE# ", (*thenode1)->node_id);
 
 				// Find the second node
 				thenode2 = nodes.begin();
@@ -1833,7 +1841,7 @@ namespace NEAT
 					// Note: This should never happen- if it does there is a bug
 					if (phenotype == 0)
 					{
-						// cout<<"ERROR: Attempt to add link to genome with no phenotype"<<std::endl;
+						NEAT::log("ERROR: Attempt to add link to genome with no phenotype");
 						return false;
 					}
 
@@ -1863,6 +1871,7 @@ namespace NEAT
 
 					// Create the new gene
 					newgene = new Gene(((thetrait[traitnum])), newweight, nodep1, nodep2, recurflag, curinnov, newweight);
+					NEAT::log("Novel NEW GENE: ", newgene->lnk->in_node->node_id);
 
 					// Add the innovation
 					innovs.push_back(new Innovation(nodep1->node_id, nodep2->node_id, curinnov, newweight, traitnum));
@@ -1882,6 +1891,7 @@ namespace NEAT
 
 					// Create new gene
 					newgene = new Gene(((thetrait[(*theinnov)->new_traitnum])), (*theinnov)->new_weight, nodep1, nodep2, recurflag, (*theinnov)->innovation_num1, 0);
+					NEAT::log("Novel NEW GENE2: ", newgene->lnk->in_node->node_id);
 
 					done = true;
 				}

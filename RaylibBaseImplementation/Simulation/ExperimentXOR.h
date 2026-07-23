@@ -39,7 +39,7 @@ namespace Neat
         ExperimentXOR(const Neat &neat);
         ~ExperimentXOR();
 
-        void initialize(const Neat &neat, int gens) override;
+        void initialize(Neat &neat, int gens) override;
 
         virtual bool runStep(const Neat &neat, int gen) override;
         virtual bool run(const Neat &neat, bool paused) override;
@@ -47,7 +47,7 @@ namespace Neat
         bool evaluate(const Neat &neat, std::shared_ptr<Organism> org);
         int epoch(const Neat &neat, std::shared_ptr<Population> pop,
                   int generation,
-                  const std::string &filename,
+                  const std::string &filename, // Changed from const char*
                   int &winnernum, int &winnergenes, int &winnernodes);
 
         void reset() override;

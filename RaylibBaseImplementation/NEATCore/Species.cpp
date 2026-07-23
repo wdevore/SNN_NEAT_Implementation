@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <sstream>
 
 #include "Species.h"
 #include "Organism.h"
+#include "Neat.h"
 
 namespace Neat
 {
@@ -53,15 +55,20 @@ namespace Neat
         return newSpecies;
     }
 
-    bool Species::add_Organism(std::shared_ptr<Organism> o)
+    bool Species::add_Organism(const Neat &neat, std::shared_ptr<Organism> o)
     {
         organisms.push_back(o);
+        neat.log("Species::add_Organism: ", (int)organisms.size());
+
         return true;
     }
 
     void Species::adjust_fitness(const Neat &neat)
     {
-        // std::cout<<"Species "<<id<<" last improved "<<(age-age_of_last_improvement)<<" steps ago when it moved up to "<<max_fitness_ever<<std::endl;
+        neat.log("########## Species::adjust_fitness ############");
+        neat.log("organisms count: ", (int)organisms.size());
+        neat.log("Species (id, last improved): ", id, (age - age_of_last_improvement));
+        neat.log("steps ago when it moved up to: ", max_fitness_ever);
 
         int age_debt = (age - age_of_last_improvement + 1) - neat.dropoff_age;
 
@@ -84,8 +91,8 @@ namespace Neat
 
                 // Extreme penalty for a long period of stagnation (divide fitness by 100)
                 curorg->fitness = curorg->fitness * 0.01;
-                // std::cout<<"OBLITERATE Species "<<id<<" of age "<<age<<std::endl;
-                // std::cout<<"dropped fitness to "<<(curorg->fitness)<<std::endl;
+                neat.log("OBLITERATE Species (id,age): ", id, age);
+                neat.log("dropped fitness to ", (curorg->fitness));
             }
 
             // Give a fitness boost up to some young age (niching)
@@ -94,12 +101,14 @@ namespace Neat
             if (age <= 10)
                 curorg->fitness = curorg->fitness * neat.age_significance;
 
+            neat.log("Checking fitness: ", curorg->fitness);
             // Do not allow negative fitness
             if (curorg->fitness < 0.0)
                 curorg->fitness = 0.0001;
 
             // Share fitness with the species
-            curorg->fitness = curorg->fitness / (organisms.size());
+            curorg->fitness = curorg->fitness / organisms.size();
+            neat.log("Sharing fitness: ", curorg->fitness);
         }
 
         // Sort the population and mark for death those after survival_thresh*pop_size
@@ -243,6 +252,8 @@ namespace Neat
         Population *pop,
         std::vector<std::shared_ptr<Species>> &sorted_species)
     {
+        neat.log("########## Species::reproduce START ############");
+
         int count{0};
         std::vector<std::shared_ptr<Organism>>::iterator curorg;
 
@@ -288,7 +299,10 @@ namespace Neat
         // Roulette wheel variables
         double total_fitness{0.0};
         double marble{0.0}; // The marble will have a number between 0 and total_fitness
-        double spin{0.0};   // 0Fitness total while the wheel is spinning
+        double spin{0.0};   // 0 Fitness total while the wheel is spinning
+
+        int linkCount{0};
+        int nodeCount{0};
 
         // Compute total fitness of species for a roulette wheel
         // Note: You don't get much advantage from a roulette here
@@ -301,7 +315,7 @@ namespace Neat
         // Check for a mistake
         if ((expected_offspring > 0) && organisms.empty())
         {
-            std::cout << "ERROR:  ATTEMPT TO REPRODUCE OUT OF EMPTY SPECIES" << std::endl;
+            neat.log("ERROR:  ATTEMPT TO REPRODUCE OUT OF EMPTY SPECIES");
             return false;
         }
 
@@ -321,8 +335,7 @@ namespace Neat
             // Debug Trap
             if (expected_offspring > neat.pop_size)
             {
-                std::cout << "ALERT: EXPECTED OFFSPRING = " << expected_offspring << std::endl;
-                //      cin>>pause;
+                neat.log("ALERT: EXPECTED OFFSPRING = ", expected_offspring);
             }
 
             // If we have a super_champ (Population champion), finish off some special clones
@@ -342,15 +355,19 @@ namespace Neat
                 if (thechamp->super_champ_offspring > 1)
                 {
                     if ((neat.randfloat() < 0.8) || (neat.mutate_add_link_prob == 0.0))
+                    {
                         // ABOVE LINE IS FOR:
                         // Make sure no links get added when the system has link adding disabled
                         new_genome->mutate_link_weights(neat, mut_power, 1.0, Mutator::GAUSSIAN);
+                        neat.log("called mutate_link_weights.");
+                    }
                     else
                     {
                         // Sometimes we add a link to a superchamp
                         new_genome->genesis(neat, generation);
                         new_genome->mutate_add_link(neat, (pop->innovations), pop->cur_innov_num, neat.newlink_tries);
                         mut_struct_baby = true;
+                        neat.log("called mutate_add_link.");
                     }
                 }
 
@@ -360,7 +377,7 @@ namespace Neat
                 {
                     if (thechamp->pop_champ)
                     {
-                        std::cout << "The new org baby's genome is " << baby->gnome << std::endl;
+                        neat.log("The new org baby's genome is ", baby->gnome->genome_id);
                         baby->pop_champ_child = true;
                         baby->high_fit = mom->orig_fitness;
                     }
@@ -374,6 +391,7 @@ namespace Neat
                 mom = thechamp; // Mom is the champ
 
                 new_genome = mom->gnome->duplicate(neat, count);
+                neat.log("mom->gnome->duplicate: ", new_genome->genome_id);
 
                 // Baby is just like mommy
                 baby = Organism::makeFromGenome(neat, 0.0, new_genome, generation);
@@ -385,6 +403,7 @@ namespace Neat
             else if ((neat.randfloat() < neat.mutate_only_prob) || poolsize == 0)
             {
                 // Choose the random parent
+                neat.log("Choose the random parent: poolsize: ", poolsize);
 
                 // RANDOM PARENT CHOOSER
                 orgnum = neat.randint(0, poolsize);
@@ -409,57 +428,61 @@ namespace Neat
 
                 new_genome = mom->gnome->duplicate(neat, count);
 
-                // Do the mutation depending on probabilities of
-                // various mutations
+                // Do the mutation depending on probabilities of various mutations
 
                 if (neat.randfloat() < neat.mutate_add_node_prob)
                 {
-                    std::cout << "mutate add node" << std::endl;
                     new_genome->mutate_add_node(neat, pop->innovations, pop->cur_node_id, pop->cur_innov_num);
                     mut_struct_baby = true;
+                    nodeCount++;
+                    neat.log("mutate_add_node: ", nodeCount);
                 }
                 else if (neat.randfloat() < neat.mutate_add_link_prob)
                 {
-                    std::cout << "mutate add link" << std::endl;
                     new_genome->genesis(neat, generation);
-                    new_genome->mutate_add_link(neat, (pop->innovations), pop->cur_innov_num, neat.newlink_tries);
+                    new_genome->mutate_add_link(neat, pop->innovations, pop->cur_innov_num, neat.newlink_tries);
 
                     mut_struct_baby = true;
+                    linkCount++;
+                    // if (linkCount == 74 || linkCount == 73)
+                    //     std::cout << "break at " << linkCount << std::endl;
+                    neat.log("mutate_add_link: ", linkCount);
                 }
                 // NOTE:  A link CANNOT be added directly after a node was added because the phenotype
                 //        will not be appropriately altered to reflect the change
                 else
                 {
                     // If we didn't do a structural mutation, we do the other kinds
+                    neat.log("Without mating");
 
                     if (neat.randfloat() < neat.mutate_random_trait_prob)
                     {
-                        // std::cout<<"mutate random trait"<<std::endl;
+                        neat.log("mutate_random_trait");
                         new_genome->mutate_random_trait(neat);
                     }
                     if (neat.randfloat() < neat.mutate_link_trait_prob)
                     {
-                        // std::cout<<"mutate_link_trait"<<std::endl;
+                        neat.log("mutate_link_trait");
                         new_genome->mutate_link_trait(neat, 1);
                     }
                     if (neat.randfloat() < neat.mutate_node_trait_prob)
                     {
-                        // std::cout<<"mutate_node_trait"<<std::endl;
+                        neat.log("mutate_node_trait");
                         new_genome->mutate_node_trait(neat, 1);
                     }
                     if (neat.randfloat() < neat.mutate_link_weights_prob)
                     {
-                        // std::cout<<"mutate_link_weights"<<std::endl;
+                        neat.log("mutate_link_weights");
                         new_genome->mutate_link_weights(neat, mut_power, 1.0, GAUSSIAN);
                     }
                     if (neat.randfloat() < neat.mutate_toggle_enable_prob)
                     {
-                        // std::cout<<"mutate toggle enable"<<std::endl;
+                        neat.log("mutate_toggle_enable");
                         new_genome->mutate_toggle_enable(neat, 1);
                     }
                     if (neat.randfloat() < neat.mutate_gene_reenable_prob)
                     {
-                        // std::cout<<"mutate gene reenable"<<std::endl;
+                        neat.log("mutate_gene_reenable");
                         new_genome->mutate_gene_reenable();
                     }
                 }
@@ -471,6 +494,8 @@ namespace Neat
             else
             {
                 // Choose the random mom
+                neat.log("choose mom");
+
                 orgnum = neat.randint(0, poolsize);
                 curorg = organisms.begin();
                 for (orgcount = 0; orgcount < orgnum; orgcount++)
@@ -496,6 +521,7 @@ namespace Neat
                 if ((neat.randfloat() > neat.interspecies_mate_rate))
                 {
                     // Mate within Species
+                    neat.log("choose dad");
 
                     orgnum = neat.randint(0, poolsize);
                     curorg = organisms.begin();
@@ -522,6 +548,7 @@ namespace Neat
                 {
                     // Mate outside Species
                     randspecies = shared_from_this();
+                    neat.log("mate outside species");
 
                     // Select a random species
                     giveup = 0; // Give up if you cant find a different Species
@@ -564,15 +591,18 @@ namespace Neat
                 // Perform mating based on probabilities of differrent mating types
                 if (neat.randfloat() < neat.mate_multipoint_prob)
                 {
-                    new_genome = (mom->gnome)->mate_multipoint(neat, dad->gnome, count, mom->orig_fitness, dad->orig_fitness, outside);
+                    new_genome = mom->gnome->mate_multipoint(neat, dad->gnome, count, mom->orig_fitness, dad->orig_fitness, outside);
+                    neat.log("mate_multipoint");
                 }
                 else if (neat.randfloat() < (neat.mate_multipoint_avg_prob / (neat.mate_multipoint_avg_prob + neat.mate_singlepoint_prob)))
                 {
-                    new_genome = (mom->gnome)->mate_multipoint_avg(neat, dad->gnome, count, mom->orig_fitness, dad->orig_fitness, outside);
+                    new_genome = mom->gnome->mate_multipoint_avg(neat, dad->gnome, count, mom->orig_fitness, dad->orig_fitness, outside);
+                    neat.log("mate_multipoint_avg");
                 }
                 else
                 {
-                    new_genome = (mom->gnome)->mate_singlepoint(neat, dad->gnome, count);
+                    new_genome = mom->gnome->mate_singlepoint(neat, dad->gnome, count);
+                    neat.log("mate_singlepoint");
                 }
 
                 mate_baby = true;
@@ -581,57 +611,58 @@ namespace Neat
                 // This is done randomly or if the mom and dad are the same organism
                 if ((neat.randfloat() > neat.mate_only_prob) ||
                     (dad->gnome->genome_id == mom->gnome->genome_id) ||
-                    ((dad->gnome->compatibility(neat, mom->gnome)) == 0.0))
+                    (dad->gnome->compatibility(neat, mom->gnome) == 0.0))
                 {
                     // Do the mutation depending on probabilities of
                     // various mutations
                     if (neat.randfloat() < neat.mutate_add_node_prob)
                     {
                         new_genome->mutate_add_node(neat, pop->innovations, pop->cur_node_id, pop->cur_innov_num);
-                        //  std::cout<<"mutate_add_node: "<<new_genome<<std::endl;
+                        neat.log("mutate_add_node");
                         mut_struct_baby = true;
                     }
                     else if (neat.randfloat() < neat.mutate_add_link_prob)
                     {
                         new_genome->genesis(neat, generation);
                         new_genome->mutate_add_link(neat, (pop->innovations), pop->cur_innov_num, neat.newlink_tries);
+                        neat.log("mutate_add_link");
 
-                        // std::cout<<"mutate_add_link: "<<new_genome<<std::endl;
                         mut_struct_baby = true;
                     }
                     else
                     {
                         // Only do other mutations when not doing sturctural mutations
+                        neat.log("With mating");
 
                         if (neat.randfloat() < neat.mutate_random_trait_prob)
                         {
+                            neat.log("mutate_random_trait");
                             new_genome->mutate_random_trait(neat);
-                            // std::cout<<"..mutate random trait: "<<new_genome<<std::endl;
                         }
                         if (neat.randfloat() < neat.mutate_link_trait_prob)
                         {
+                            neat.log("mutate_link_trait");
                             new_genome->mutate_link_trait(neat, 1);
-                            // std::cout<<"..mutate link trait: "<<new_genome<<std::endl;
                         }
                         if (neat.randfloat() < neat.mutate_node_trait_prob)
                         {
+                            neat.log("mutate_node_trait");
                             new_genome->mutate_node_trait(neat, 1);
-                            // std::cout<<"mutate_node_trait: "<<new_genome<<std::endl;
                         }
                         if (neat.randfloat() < neat.mutate_link_weights_prob)
                         {
+                            neat.log("mutate_link_weights");
                             new_genome->mutate_link_weights(neat, mut_power, 1.0, GAUSSIAN);
-                            // std::cout<<"mutate_link_weights: "<<new_genome<<std::endl;
                         }
                         if (neat.randfloat() < neat.mutate_toggle_enable_prob)
                         {
+                            neat.log("mutate_toggle_enable");
                             new_genome->mutate_toggle_enable(neat, 1);
-                            // std::cout<<"mutate_toggle_enable: "<<new_genome<<std::endl;
                         }
                         if (neat.randfloat() < neat.mutate_gene_reenable_prob)
                         {
+                            neat.log("mutate_gene_reenable");
                             new_genome->mutate_gene_reenable();
-                            // std::cout<<"mutate_gene_reenable: "<<new_genome<<std::endl;
                         }
                     }
 
@@ -658,8 +689,8 @@ namespace Neat
                 newspecies = Species::makeFromNovel(++(pop->last_species), true);
                 (pop->species).push_back(newspecies);
 
-                newspecies->add_Organism(baby); // Add the baby
-                baby->species = newspecies;     // Point the baby to its species
+                newspecies->add_Organism(neat, baby); // Add the baby
+                baby->species = newspecies;           // Point the baby to its species
             }
             else
             {
@@ -677,7 +708,7 @@ namespace Neat
                     else if ((baby->gnome->compatibility(neat, comporg->gnome)) < neat.compat_threshold)
                     {
                         // Found compatible species, so add this organism to it
-                        (*curspecies)->add_Organism(baby);
+                        (*curspecies)->add_Organism(neat, baby);
                         baby->species = (*curspecies); // Point organism to its species
                         found = true;                  // Note the search is over
                     }
@@ -695,14 +726,21 @@ namespace Neat
                 {
                     newspecies = Species::makeFromNovel(++(pop->last_species), true);
 
-                    // std::std::cout<<"CREATING NEW SPECIES "<<pop->last_species<<std::std::endl;
+                    neat.log("CREATING NEW SPECIES ", pop->last_species);
                     (pop->species).push_back(newspecies);
-                    newspecies->add_Organism(baby); // Add the baby
-                    baby->species = newspecies;     // Point baby to its species
+                    newspecies->add_Organism(neat, baby); // Add the baby
+                    baby->species = newspecies;           // Point baby to its species
                 }
 
             } // end else
         }
+
+        if (linkCount > 0)
+            neat.log("Links added during reproduction: ", linkCount);
+        if (nodeCount > 0)
+            neat.log("Nodes added during reproduction: ", nodeCount);
+
+        neat.log("########## Species::reproduce END ############");
 
         return true;
     }

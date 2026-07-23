@@ -45,7 +45,7 @@ namespace Neat
         // ================================================
         // Methods
         // ================================================
-        bool add_Organism(std::shared_ptr<Organism> o);
+        bool add_Organism(const Neat &neat, std::shared_ptr<Organism> o);
 
         std::shared_ptr<Organism> first() { return organisms.front(); }
 

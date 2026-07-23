@@ -25,31 +25,29 @@ namespace Neat
     {
     }
 
-    void ExperimentXOR::initialize(const Neat &neat, int gens)
+    void ExperimentXOR::initialize(Neat &neat, int gens)
     {
         iFile.open("assets/xorstartgenes");
 
         this->gens = gens;
 
-        std::cout << "START XOR TEST" << std::endl;
-
-        std::cout << "Reading in the start genome" << std::endl;
-
         // Read in the start Genome
         iFile >> curword;
         iFile >> id;
-        std::cout << "Reading in Genome id " << id << std::endl;
+        neat.log("Read in Genome id ", id);
 
         start_genome = Genome::makeFromFile(neat, id, iFile);
 
         iFile.close();
 
         // Spawn the Population
-        std::cout << "Spawning Population off Genome2" << std::endl;
+        neat.log("Spawning Population off Genome2");
 
+        neat.disableLog();
         pop = Population::makeFromGenome(neat, start_genome, neat.pop_size);
+        neat.enableLog();
 
-        std::cout << "Verifying Spawned Pop" << std::endl;
+        neat.log("Verifying Spawned Pop");
         pop->verify();
     }
 
@@ -59,11 +57,11 @@ namespace Neat
         // for (int expcount = 0; expcount < neat.num_runs; expcount++)
         // {
         // // Spawn the Population
-        // std::cout << "Spawning Population off Genome2" << std::endl;
+        // neat.log("Spawning Population off Genome2");
 
         // pop = Population::makeFromGenome(neat, start_genomeg, neat.pop_size);
 
-        // std::cout << "Verifying Spawned Pop" << std::endl;
+        // neat.log("Verifying Spawned Pop");
         // pop->verify();
 
         // for (int gen = 1; gen <= gens; gen++)
@@ -93,36 +91,36 @@ namespace Neat
     void ExperimentXOR::post_test(const Neat &neat)
     {
         // Average and print stats
-        std::cout << "Nodes: " << std::endl;
-        for (const auto &node_count : nodes)
-        {
-            std::cout << node_count << std::endl;
-            totalnodes += node_count;
-        }
+        // neat.log("Nodes: ");
+        // for (const auto &node_count : nodes)
+        // {
+        //     neat.log(node_count);
+        //     totalnodes += node_count;
+        // }
 
-        std::cout << "Genes: " << std::endl;
-        for (const auto &gene_count : genes)
-        {
-            std::cout << gene_count << std::endl;
-            totalgenes += gene_count;
-        }
+        // neat.log("Genes: ");
+        // for (const auto &gene_count : genes)
+        // {
+        //     neat.log(gene_count);
+        //     totalgenes += gene_count;
+        // }
 
-        std::cout << "Evals " << std::endl;
-        int samples = 0;
-        for (const auto &eval_count : evals)
-        {
-            std::cout << eval_count << std::endl;
-            if (eval_count > 0)
-            {
-                totalevals += eval_count;
-                samples++;
-            }
-        }
+        // neat.log("Evals ");
+        // int samples = 0;
+        // for (const auto &eval_count : evals)
+        // {
+        //     neat.log(eval_count);
+        //     if (eval_count > 0)
+        //     {
+        //         totalevals += eval_count;
+        //         samples++;
+        //     }
+        // }
 
-        std::cout << "Failures: " << (neat.num_runs - samples) << " out of " << neat.num_runs << " runs" << std::endl;
-        std::cout << "Average Nodes: " << (samples > 0 ? (double)totalnodes / samples : 0) << std::endl;
-        std::cout << "Average Genes: " << (samples > 0 ? (double)totalgenes / samples : 0) << std::endl;
-        std::cout << "Average Evals: " << (samples > 0 ? (double)totalevals / samples : 0) << std::endl;
+        // neat.log("Failures: " << (neat.num_runs - samples) << " out of " << neat.num_runs << " runs");
+        // neat.log("Average Nodes: " << (samples > 0 ? (double)totalnodes / samples : 0));
+        // neat.log("Average Genes: " << (samples > 0 ? (double)totalgenes / samples : 0));
+        // neat.log("Average Evals: " << (samples > 0 ? (double)totalevals / samples : 0));
     }
 
     bool ExperimentXOR::evaluate(const Neat &neat, std::shared_ptr<Organism> org)
@@ -148,10 +146,10 @@ namespace Neat
         std::shared_ptr<Network> net = org->net;
 
         numnodes = org->gnome->nodes.size();
-        // std::cout << "How many nodes to visit: " << numnodes << std::endl;
+        // neat.log("How many nodes to visit: " << numnodes);
 
         net_depth = net->max_depth();
-        // std::cout << "Evaluate Network DEPTH: " << net_depth << std::endl;
+        // neat.log("Evaluate Network DEPTH: " << net_depth);
 
         // Load and activate the network on each input
         for (int count = 0; count <= 3; count++)
@@ -180,16 +178,18 @@ namespace Neat
             errorsum = (std::fabs(out[0]) + std::fabs(1.0 - out[1]) + std::fabs(1.0 - out[2]) + std::fabs(out[3]));
             org->fitness = std::pow(4.0 - errorsum, 2);
             org->error = errorsum;
+            neat.log("Evaluate: new fitness: ", org->fitness);
         }
         else
         {
             // The network is flawed (shouldn't happen)
             errorsum = 999.0;
             org->fitness = neat.organism_fitness_measure;
+            neat.log("Evaluate: The network is flawed (shouldn't happen)");
         }
 
-        // std::cout << "Org Genome Id " << org->gnome->genome_id << "                                     error: " << errorsum << " Outputs: [" << out[0] << " " << out[1] << " " << out[2] << " " << out[3] << "]" << std::endl;
-        // std::cout << "Org Genome Id " << org->gnome->genome_id << "                                     fitness: " << org->fitness << std::endl;
+        // neat.log("Org Genome Id " << org->gnome->genome_id << "                                     error: " << errorsum << " Outputs: [" << out[0] << " " << out[1] << " " << out[2] << " " << out[3] << "]");
+        // neat.log("Org Genome Id " << org->gnome->genome_id << "                                     fitness: " << org->fitness);
 
         if ((out[0] < 0.5) && (out[1] >= 0.5) && (out[2] >= 0.5) && (out[3] < 0.5))
         {
@@ -256,7 +256,7 @@ namespace Neat
             {
                 if (org->winner)
                 {
-                    std::cout << "WINNER IS #" << org->gnome->genome_id << std::endl;
+                    neat.log("WINNER IS # ", org->gnome->genome_id);
                     // Prints the winner to file
                     // IMPORTANT: This causes generational file output!
                     // print_Genome_tofile((*curorg)->gnome, "xor_winner");
@@ -273,7 +273,9 @@ namespace Neat
     {
         bool winnerFound = false;
 
-        std::cout << "=== Epoch Beginning (" << genID << ")" << std::endl;
+        neat.log("=============================================");
+        neat.log("=== Epoch Beginning: ", genID);
+        neat.log("=============================================");
         const std::string fileName = "gen_" + std::to_string(genID);
 
         // Check for success
@@ -286,7 +288,9 @@ namespace Neat
             winnerFound = true;
         }
 
-        std::cout << "=== Epoch Complete (" << genID << ")" << std::endl;
+        neat.log("=============================================");
+        neat.log("=== Epoch Complete: ", genID);
+        neat.log("=============================================");
 
         return winnerFound;
     }

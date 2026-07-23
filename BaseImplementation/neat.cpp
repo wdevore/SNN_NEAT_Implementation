@@ -53,6 +53,8 @@ int NEAT::newlink_tries = 0;	  // Number of tries mutate_add_link will attempt t
 int NEAT::print_every = 0;		  // Tells to print population to file every n generations
 int NEAT::babies_stolen = 0;	  // The number of babies to siphen off to the champions
 int NEAT::num_runs = 0;
+std::ofstream NEAT::log_file;
+bool NEAT::outputEnabled = false;
 // MRandomR250 NEAT::NEATRandGen = MRandomR250(Platform::getRealMilliseconds()); // Random number generator; can pass seed value as argument here
 // MRandomR250 NEAT::NEATRandGen = MRandomR250();
 
@@ -448,11 +450,14 @@ double NEAT::gaussrand()
 	{
 		do
 		{
-			v1 = 2.0 * (randfloat()) - 1.0;
-			v2 = 2.0 * (randfloat()) - 1.0;
+			double randG1 = randfloat();
+			double randG2 = randfloat();
+			// log("(randG1,randG2): ", randG1, randG2);
+			v1 = 2.0 * randG1 - 1.0;
+			v2 = 2.0 * randG2 - 1.0;
 			rsq = v1 * v1 + v2 * v2;
 		} while (rsq >= 1.0 || rsq == 0.0);
-		fac = sqrt(-2.0 * log(rsq) / rsq);
+		fac = std::sqrt(-2.0 * std::log(rsq) / rsq);
 		gset = v1 * fac;
 		iset = 1;
 		return v2 * fac;
@@ -461,6 +466,110 @@ double NEAT::gaussrand()
 	{
 		iset = 0;
 		return gset;
+	}
+}
+
+void NEAT::open_log(const std::string &filename)
+{
+	outputEnabled = true;
+	if (log_file.is_open())
+	{
+		log_file.close();
+	}
+	log_file.open(filename);
+	if (!log_file.is_open())
+	{
+		std::cerr << "ERROR: Could not open log file: " << filename << std::endl;
+	}
+}
+
+void NEAT::disableLog()
+{
+	outputEnabled = false;
+}
+
+void NEAT::enableLog()
+{
+	outputEnabled = true;
+}
+
+void NEAT::log(const std::string &message, bool crlf)
+{
+	if (log_file.is_open() && outputEnabled)
+	{
+		log_file << message << std::endl;
+	}
+}
+
+void NEAT::log(const std::stringstream &ss, bool crlf)
+{
+	if (log_file.is_open() && outputEnabled)
+	{
+		log_file << ss.str() << std::endl;
+	}
+}
+
+void NEAT::log(const char *message, bool crlf)
+{
+	if (log_file.is_open() && outputEnabled)
+	{
+		log_file << message << std::endl;
+	}
+}
+
+void NEAT::log(const char *message, int value, bool crlf)
+{
+	if (log_file.is_open() && outputEnabled)
+	{
+		log_file << message << value << std::endl;
+	}
+}
+
+void NEAT::log(const char *message, int value, int value2, bool crlf)
+{
+	if (log_file.is_open() && outputEnabled)
+	{
+		log_file << message << value << ", " << value2 << std::endl;
+	}
+}
+
+void NEAT::log(const char *message, double value, double value2, bool crlf)
+{
+	if (log_file.is_open() && outputEnabled)
+	{
+		log_file << message << value << ", " << value2 << std::endl;
+	}
+}
+
+void NEAT::log(const char *message, int value, double value2, bool crlf)
+{
+	if (log_file.is_open() && outputEnabled)
+	{
+		log_file << message << value << ", " << value2 << std::endl;
+	}
+}
+
+void NEAT::log(const char *message, double value, int value2, bool crlf)
+{
+	if (log_file.is_open() && outputEnabled)
+	{
+		log_file << message << value << ", " << value2 << std::endl;
+	}
+}
+
+void NEAT::log(const char *message, double value, bool crlf)
+{
+	if (log_file.is_open() && outputEnabled)
+	{
+		log_file << message << value << std::endl;
+	}
+}
+
+void NEAT::close_log()
+{
+	if (log_file.is_open())
+	{
+		log_file.close();
 	}
 }
 

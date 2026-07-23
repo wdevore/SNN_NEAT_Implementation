@@ -21,7 +21,8 @@ namespace Neat
         newOrg->fitness = fit;
         newOrg->orig_fitness = fit;
         newOrg->gnome = g;
-        newOrg->net = newOrg->update_phenotype(neat);
+        newOrg->net = g->genesis(neat, g->genome_id);
+        // newOrg->net = newOrg->update_phenotype(neat);
         // newOrg->species; // Start it in no Species. Note shared pointers default to nullptr
         newOrg->expected_offspring = 0;
         newOrg->generation = gen;
@@ -42,6 +43,8 @@ namespace Neat
         newOrg->high_fit = 0;
         newOrg->mut_struct_baby = 0;
         newOrg->mate_baby = 0;
+
+        newOrg->modified = true;
 
         return newOrg;
     }
@@ -81,7 +84,7 @@ namespace Neat
     {
         // Recreate the phenotype off the new genotype.
         // The old phenotype is automatically deallocated by the shared_ptr's assignment operator.
-        auto net = gnome->genesis(neat, gnome->genome_id);
+        net = gnome->genesis(neat, gnome->genome_id);
 
         modified = true;
 

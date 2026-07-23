@@ -28,7 +28,7 @@ namespace Neat
         std::vector<std::shared_ptr<NNode>> all,
         int netid, bool adaptval)
     {
-        auto newNetwork = std::make_unique<Network>();
+        auto newNetwork = std::make_shared<Network>();
 
         newNetwork->inputs = in;
         newNetwork->outputs = out;
@@ -49,7 +49,7 @@ namespace Neat
 
     std::shared_ptr<Network> Network::makeEmptyAdaptable(int netid, bool adaptval)
     {
-        auto newNetwork = std::make_unique<Network>();
+        auto newNetwork = std::make_shared<Network>();
 
         newNetwork->name = ""; // Defaults to no name
         newNetwork->numnodes = -1;
@@ -62,7 +62,7 @@ namespace Neat
 
     std::shared_ptr<Network> Network::makeCopy(const Network &network)
     {
-        auto newNetwork = std::make_unique<Network>();
+        auto newNetwork = std::make_shared<Network>();
 
         // Copy all the inputs
         for (const auto &curnode : network.inputs)
@@ -120,8 +120,8 @@ namespace Neat
 
         for (const auto &curnode : outputs)
         {
-            auto it = std::find(seenlist.begin(), seenlist.end(), curnode);
-            if (it == seenlist.end())
+            auto location = std::find(seenlist.begin(), seenlist.end(), curnode);
+            if (location == seenlist.end())
             {
                 seenlist.push_back(curnode);
                 curnode->flushback_check(seenlist);
@@ -174,6 +174,8 @@ namespace Neat
     // Returns true on success;
     bool Network::activate(const Neat &neat)
     {
+        neat.log("Network::activate START");
+
         double add_amount{0}; // For adding to the activesum
         bool onetime{false};  // Make sure we at least activate once
         int abortcount = 0;   // Used in case the output is somehow truncated from the network
@@ -191,14 +193,16 @@ namespace Neat
             if (abortcount == neat.network_abort_count)
             {
                 return false;
-                std::cout << "Inputs disconnected from output!" << std::endl;
+                neat.log("Inputs disconnected from output!");
             }
-            // std::cout<<"Outputs are off"<<std::endl;
+            neat.log("Outputs are off");
 
             // For each node, compute the sum of its incoming activation
             for (const auto &curnode : all_nodes)
             {
                 // Ignore SENSORS
+                neat.log("On node ", curnode->node_id);
+
                 if (!curnode->isSensor())
                 {
                     curnode->activesum = 0;
@@ -214,16 +218,18 @@ namespace Neat
 
                             if (curlink->in_node->active_flag || curlink->in_node->isSensor())
                                 curnode->active_flag = true;
-                            // std::cout << "1)Node " << curnode->node_id << " adding " << add_amount << " from node " << curlink->in_node->node_id << std::endl;
 
                             curnode->activesum += add_amount;
+                            neat.log("1) Node (amount, nodeid) ", add_amount, curnode->node_id);
+                            neat.log("  (activesum,from node) ", curnode->activesum, curlink->in_node->node_id);
                         }
                         else
                         {
                             // Input over a time delayed connection
                             add_amount = curlink->weight * curlink->in_node->get_active_out_td();
                             curnode->activesum += add_amount;
-                            std::cout << "2)Node " << curnode->node_id << " adding " << add_amount << " from node " << curlink->in_node->node_id << std::endl;
+                            neat.log("2) Node (amount, nodeid) ", add_amount, curnode->node_id);
+                            neat.log("  (activesum,from link) ", curnode->activesum, curlink->in_node->node_id);
                         }
 
                     } // End for over incoming links
@@ -240,7 +246,7 @@ namespace Neat
                     // Only activate if some active input came in
                     if (curnode->active_flag)
                     {
-                        // cout<<"Activating "<<(*curnode)->node_id<<" with "<<(*curnode)->activesum<<": ";
+                        neat.log("(Activating , with): ", curnode->node_id, curnode->activesum);
 
                         // Keep a memory of activations for potential time delayed connections
                         curnode->last_activation2 = curnode->last_activation;
@@ -262,7 +268,7 @@ namespace Neat
                                     neat.network_activate_sigmoid_slope,
                                     neat.network_activate_sigmoid_constant); // Sigmoidal activation- see comments under fsigmoid
                         }
-                        // std::cout << "node activation: " << curnode->activation << std::endl;
+                        neat.log("node activation: ", curnode->activation);
 
                         // Increment the activation_count
                         // First activation cannot be from nothing!!
@@ -276,14 +282,14 @@ namespace Neat
 
         if (adaptable)
         {
-            // std::cout << "ADAPTING" << std:endl;
+            neat.log("ADAPTING");
 
             // ADAPTATION:  Adapt weights based on activations
             for (const auto &curnode : all_nodes)
             {
                 // Ignore SENSORS
 
-                // cout<<"On node "<<(*curnode)->node_id<<endl;
+                neat.log("Ignore SENSORS: On node ", curnode->node_id);
 
                 if (!curnode->isSensor())
                 {
@@ -319,6 +325,7 @@ namespace Neat
             }
 
         } // end if (adaptable)
+        neat.log("Network::activate END");
 
         return true;
     }
